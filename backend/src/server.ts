@@ -3,6 +3,7 @@ import koaCors from "koa-cors";
 import { connect } from "mongoose";
 
 import "dotenv/config";
+import { WebSocketServer } from "ws";
 
 const app = new Koa();
 app.use(koaCors);
@@ -16,6 +17,10 @@ connect(mongoDB)
   })
   .catch((err) => console.error({ message: err }));
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
+  const wsServer = new WebSocketServer({
+    server,
+    path: "/",
+  });
   console.log(`Server running, ${port}`);
 });
