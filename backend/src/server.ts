@@ -36,7 +36,6 @@ app.use(
       query: ctx.request.query,
     };
 
-    await next();
     if (shouldRenderGraphiQL(request)) {
       ctx.body = renderGraphiQL({
         subscriptionsEndpoint: `ws://localhost:${port}`,
@@ -66,7 +65,7 @@ connect(mongoDB)
 const server = app.listen(port, () => {
   const wsServer = new WebSocketServer({
     server,
-    path: "/",
+    path: "/graphql",
   });
 
   useServer({ schema, execute, subscribe }, wsServer);
