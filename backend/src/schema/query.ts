@@ -52,6 +52,14 @@ const query = new GraphQLObjectType({
     listUser: {
       name: "listUser",
       type: new GraphQLList(userTypeDefinition),
+      args: {
+        card: {
+          type: GraphQLID,
+        },
+        debt: {
+          type: GraphQLID,
+        },
+      },
       resolve: listUser,
     },
   }),
