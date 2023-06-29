@@ -28,7 +28,7 @@ app.use(convert(koaCors()));
 app.use(convert(bodyParser()));
 
 app.use(
-  convert(async (ctx, next) => {
+  convert(async (ctx, _) => {
     const request = {
       body: ctx.request.body,
       headers: ctx.req.headers,
