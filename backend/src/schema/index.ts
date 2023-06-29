@@ -1,3 +1,7 @@
 import { GraphQLSchema } from "graphql";
 
-export const schema = new GraphQLSchema({});
+import query from "./query";
+
+export const schema = new GraphQLSchema({
+  query,
+});

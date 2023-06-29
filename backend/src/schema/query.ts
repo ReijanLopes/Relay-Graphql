@@ -1,11 +1,21 @@
-import { GraphQLID, GraphQLObjectType } from "graphql";
+import {
+  GraphQLID,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLObjectType,
+} from "graphql";
 
-import user from "../models/user";
+import { getCard } from "./resolvers/cardResolvers";
+import { getDebt } from "./resolvers/debtResolvers";
+import { getUser, listUser } from "./resolvers/userResolvers";
 
-import { userTypeDefinition } from "./types/userType";
-import { cardTypeDefinition } from "./types/cardType";
+import {
+  cardTypeDefinition,
+  debtTypeDefinition,
+  userTypeDefinition,
+} from "./types";
 
-export const query = new GraphQLObjectType({
+const query = new GraphQLObjectType({
   name: "Query",
   description: "Root of all queries",
   fields: () => ({
@@ -14,25 +24,37 @@ export const query = new GraphQLObjectType({
       type: userTypeDefinition,
       args: {
         _id: {
-          type: GraphQLID,
+          type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve: async (_, args) => {
-        return await user
-          .findById({ _id: args?._id })
-          .populate("cards")
-          .populate("debts");
-      },
+      resolve: getUser,
     },
     getCard: {
       name: "getCard",
       type: cardTypeDefinition,
       args: {
         _id: {
-          type: GraphQLID,
+          type: new GraphQLNonNull(GraphQLID),
         },
       },
-      resolve: async (_, args) => {},
+      resolve: getCard,
+    },
+    getDebt: {
+      name: "getDebt",
+      type: debtTypeDefinition,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        },
+      },
+      resolve: getDebt,
+    },
+    listUser: {
+      name: "listUser",
+      type: new GraphQLList(userTypeDefinition),
+      resolve: listUser,
     },
   }),
 });
+
+export default query;
