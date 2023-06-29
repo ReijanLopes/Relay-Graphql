@@ -8,7 +8,7 @@ import {
   cardTypeDefinition,
   userInput,
   userTypeDefinition,
-} from "./types";
+} from "./graphqlTypes";
 
 const mutation = new GraphQLObjectType({
   name: "Mutation",
