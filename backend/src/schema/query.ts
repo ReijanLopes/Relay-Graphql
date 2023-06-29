@@ -13,7 +13,7 @@ import {
   cardTypeDefinition,
   debtTypeDefinition,
   userTypeDefinition,
-} from "./types";
+} from "./graphqlTypes";
 
 const query = new GraphQLObjectType({
   name: "Query",
