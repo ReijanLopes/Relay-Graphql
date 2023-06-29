@@ -69,5 +69,5 @@ const server = app.listen(port, () => {
   });
 
   useServer({ schema, execute, subscribe }, wsServer);
-  console.log(`Server running, ${port}`);
+  console.log(`Server running, http://localhost:${port}`);
 });

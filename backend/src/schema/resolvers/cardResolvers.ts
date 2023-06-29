@@ -8,7 +8,7 @@ export const getCard = async (
   try {
     return await card.find(filter).populate("user").populate("debts").lean();
   } catch (error) {
-    throw new GraphQLError(error?.message as string);
+    throw new GraphQLError(error?.message);
   }
 };
 
@@ -16,9 +16,10 @@ export const mutationCard = async (_, { input }) => {
   const { _id, ...res } = input;
   if (!_id) {
     try {
-      return await card.create(res);
+      const createCard = await card.create(res);
+      return createCard.save();
     } catch (error) {
-      throw new GraphQLError(error?.message as string);
+      throw new GraphQLError(error?.message);
     }
   } else {
     try {

@@ -10,6 +10,6 @@ export const getDebt = async (_: any, filter: { _id?: string }) => {
       .populate("tax")
       .lean();
   } catch (error) {
-    throw new GraphQLError(error?.message as string);
+    throw new GraphQLError(error?.message);
   }
 };

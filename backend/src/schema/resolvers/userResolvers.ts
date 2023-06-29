@@ -5,9 +5,15 @@ import { GraphQLError } from "graphql";
 
 export const getUser = async (_: any, filter: { _id?: string }) => {
   try {
-    return await user.find(filter).populate("user").populate("debts").lean();
+    const getUser = await user
+      .find(filter)
+      .populate("user")
+      .populate("debts")
+      .lean();
+
+    return getUser;
   } catch (error) {
-    throw new GraphQLError(error?.message as string);
+    throw new GraphQLError(error?.message);
   }
 };
 
@@ -21,7 +27,7 @@ export const listUser = async (
     try {
       return await user.find().populate("user").populate("debts").lean();
     } catch (error) {
-      throw new GraphQLError(error?.message as string);
+      throw new GraphQLError(error?.message);
     }
   }
 
@@ -34,14 +40,19 @@ export const listUser = async (
 
     return users;
   } catch (error) {
-    throw new GraphQLError(error?.message as string);
+    throw new GraphQLError(error?.message);
   }
 };
 
 export const mutationUser = async (_: any, { input }) => {
   const { _id, ...res } = input;
   if (!_id) {
-    await user.create(res);
+    try {
+      const createUser = await user.create(res);
+      return createUser.save();
+    } catch (error) {
+      throw new GraphQLError(error?.message);
+    }
   } else {
     try {
       await user.updateOne({ _id }, res);
@@ -54,7 +65,7 @@ export const mutationUser = async (_: any, { input }) => {
 
 export const deleteUser = async (_: any, { _id }: { _id: string }) => {
   try {
-    const userDeleted = await user.deleteOne({ _id });
+    const userDeleted = await user.deleteOne({ _id }).lean();
 
     if (userDeleted?.deletedCount === 1) {
       await card.deleteMany({ user: _id });
