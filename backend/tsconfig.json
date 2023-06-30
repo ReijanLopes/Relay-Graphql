@@ -10,6 +10,7 @@
     "preserveConstEnums": true,
     "sourceMap": true,
     "esModuleInterop": true,
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "noImplicitAny": false
   }
 }

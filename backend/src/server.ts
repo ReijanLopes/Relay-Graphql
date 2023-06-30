@@ -16,7 +16,7 @@ import {
   shouldRenderGraphiQL,
 } from "graphql-helix";
 
-import { schema } from "./schema/index";
+import { schema } from "./graphql/index";
 
 import "dotenv/config";
 
