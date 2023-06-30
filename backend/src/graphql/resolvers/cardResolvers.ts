@@ -1,5 +1,6 @@
 import { GraphQLError } from "graphql";
 import card from "../../models/card";
+import type { Card } from "../../types";
 
 export const getCard = async (
   _: any,
@@ -12,7 +13,7 @@ export const getCard = async (
   }
 };
 
-export const mutationCard = async (_, { input }) => {
+export const mutationCard = async (_, { input }: { input: Card }) => {
   const { _id, ...res } = input;
   if (!_id) {
     try {

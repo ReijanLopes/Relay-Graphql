@@ -2,8 +2,9 @@ import user from "../../models/user";
 import card from "../../models/card";
 import debt from "../../models/debt";
 import { GraphQLError } from "graphql";
+import type { User } from "../../types";
 
-export const getUser = async (_: any, filter: { _id?: string }) => {
+export const getUser = async (_, filter: { _id?: string }) => {
   try {
     const getUser = await user
       .find(filter)
@@ -44,7 +45,7 @@ export const listUser = async (
   }
 };
 
-export const mutationUser = async (_: any, { input }) => {
+export const mutationUser = async (_: any, { input }: { input: User }) => {
   const { _id, ...res } = input;
   if (!_id) {
     try {
