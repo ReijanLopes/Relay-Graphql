@@ -6,6 +6,7 @@ import {
   GraphQLInputObjectType,
   GraphQLFloat,
   GraphQLInt,
+  GraphQLBoolean,
 } from "graphql";
 
 const timestamps = {
@@ -26,7 +27,7 @@ const card = {
   number: { type: GraphQLString },
   cpf: { type: GraphQLString },
   expiration: { type: GraphQLString },
-  cvv: { type: GraphQLString },
+  cvv: { type: GraphQLInt },
   ...timestamps,
 };
 
@@ -126,11 +127,13 @@ export const userInput = new GraphQLInputObjectType({
   name: "UserInput",
   fields: {
     ...user,
+    cards: { type: new GraphQLList(GraphQLString) },
+    debts: { type: new GraphQLList(GraphQLString) },
   },
 });
 
 export const cardInput = new GraphQLInputObjectType({
-  name: "cardInput",
+  name: "CardInput",
   fields: {
     ...card,
     debts: { type: new GraphQLList(GraphQLID) },
@@ -160,5 +163,12 @@ export const debtInput = new GraphQLInputObjectType({
     card: { type: GraphQLID },
     tax: { type: GraphQLID },
     installments: { type: new GraphQLList(installmentInput) },
+  },
+});
+
+export const deleteMessage = new GraphQLObjectType({
+  name: "DeleteMessage",
+  fields: {
+    message: { type: GraphQLBoolean },
   },
 });

@@ -1,17 +1,18 @@
 import user from "../../models/user";
 import card from "../../models/card";
 import debt from "../../models/debt";
-import { GraphQLError } from "graphql";
-import type { User } from "../../types";
 
-export const getUser = async (_, filter: { _id?: string }) => {
+import { GraphQLError } from "graphql";
+
+import type { UserInput } from "../../types";
+
+export const getUser = async (_, { _id }: { _id?: string }) => {
   try {
     const getUser = await user
-      .find(filter)
-      .populate("user")
+      .findById({ _id })
+      .populate("cards")
       .populate("debts")
       .lean();
-
     return getUser;
   } catch (error) {
     throw new GraphQLError(error?.message);
@@ -20,13 +21,19 @@ export const getUser = async (_, filter: { _id?: string }) => {
 
 export const listUser = async (
   _: any,
-  filter: { card: string } | { debt: string }
+  filter: { cards: string } | { debts: string }
 ) => {
   const key = Object.keys(filter)?.[0];
 
   if (!key) {
     try {
-      return await user.find().populate("user").populate("debts").lean();
+      const listUser = await user
+        .find()
+        .populate("cards")
+        .populate("debts")
+        .lean();
+
+      return listUser;
     } catch (error) {
       throw new GraphQLError(error?.message);
     }
@@ -35,18 +42,18 @@ export const listUser = async (
   try {
     const users = await user
       .find({ [key]: { $in: filter?.[key] } })
-      .populate("user")
+      .populate("cards")
       .populate("debts")
       .lean();
-
     return users;
   } catch (error) {
     throw new GraphQLError(error?.message);
   }
 };
 
-export const mutationUser = async (_: any, { input }: { input: User }) => {
+export const mutationUser = async (_: any, { input }: { input: UserInput }) => {
   const { _id, ...res } = input;
+  console.log(_id, res);
   if (!_id) {
     try {
       const createUser = await user.create(res);
@@ -67,13 +74,13 @@ export const mutationUser = async (_: any, { input }: { input: User }) => {
 export const deleteUser = async (_: any, { _id }: { _id: string }) => {
   try {
     const userDeleted = await user.deleteOne({ _id }).lean();
-
+    console.log(_id, userDeleted);
     if (userDeleted?.deletedCount === 1) {
       await card.deleteMany({ user: _id });
       await debt.deleteMany({ user: _id });
-      return true;
+      return { message: true };
     } else {
-      throw new GraphQLError("Failed to delete user");
+      return { message: false };
     }
   } catch (error) {
     throw new GraphQLError(error?.message);

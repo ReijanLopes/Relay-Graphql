@@ -16,6 +16,7 @@ import {
   shouldRenderGraphiQL,
 } from "graphql-helix";
 
+import automaticGenerators from "./automaticGenerators";
 import { schema } from "./graphql/index";
 
 import "dotenv/config";
@@ -26,6 +27,8 @@ const port = process.env.PORT;
 const app = new Koa();
 app.use(convert(koaCors()));
 app.use(convert(bodyParser()));
+
+automaticGenerators(schema);
 
 app.use(
   convert(async (ctx, _) => {

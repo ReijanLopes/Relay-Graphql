@@ -1,4 +1,4 @@
-import { GraphQLBoolean, GraphQLID, GraphQLObjectType } from "graphql";
+import { GraphQLID, GraphQLObjectType } from "graphql";
 
 import { deleteUser, mutationUser } from "./resolvers/userResolvers";
 import { mutationCard } from "./resolvers/cardResolvers";
@@ -8,6 +8,7 @@ import {
   cardTypeDefinition,
   userInput,
   userTypeDefinition,
+  deleteMessage,
 } from "./graphqlTypes";
 
 const mutation = new GraphQLObjectType({
@@ -29,7 +30,7 @@ const mutation = new GraphQLObjectType({
       resolve: mutationCard,
     },
     deleteUser: {
-      type: GraphQLBoolean,
+      type: deleteMessage,
       args: {
         _id: { type: GraphQLID },
       },
