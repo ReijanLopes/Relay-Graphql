@@ -20,6 +20,7 @@ import automaticGenerators from "./automaticGenerators";
 import { schema } from "./graphql/index";
 
 import "dotenv/config";
+import debt from "./models/debt";
 
 const mongoDB = process.env.MONGODB_CONNECT as string;
 const port = process.env.PORT;
@@ -41,11 +42,14 @@ app.use(
 
     if (shouldRenderGraphiQL(request)) {
       ctx.body = renderGraphiQL({
-        subscriptionsEndpoint: `ws://localhost:${port}`,
+        subscriptionsEndpoint: `ws://localhost:${port}/graphql`,
       });
     } else {
       const { operationName, query, variables } = getGraphQLParameters(request);
 
+      console.log("operationName", operationName);
+      console.log("query", query);
+      console.log("variables", variables);
       const result = await processRequest({
         operationName,
         query,
@@ -54,6 +58,7 @@ app.use(
         schema,
       });
 
+      ctx.respond = false;
       sendResult(result, ctx.res);
     }
   })
