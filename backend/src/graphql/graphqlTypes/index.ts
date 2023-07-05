@@ -31,7 +31,7 @@ const card = {
   ...timestamps,
 };
 
-const debt = {
+export const debt = {
   _id: { type: GraphQLID },
   value: { type: GraphQLFloat },
   cashback: { type: GraphQLFloat },
@@ -41,7 +41,7 @@ const debt = {
   ...timestamps,
 };
 
-const installment = {
+export const installment = {
   status: { type: GraphQLString },
   idMonth: { type: GraphQLInt },
   value: { type: GraphQLFloat },

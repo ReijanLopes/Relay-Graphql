@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import pubsub from "../redis";
 
 const debtSchema = new Schema(
   {
@@ -37,4 +38,10 @@ const debtSchema = new Schema(
   { timestamps: true }
 );
 
-export default model("Debt", debtSchema);
+debtSchema.post("save", (doc) => {
+  pubsub.publish("DEBT_ADDED", { debtAdded: doc });
+});
+
+const debt = model("Debt", debtSchema);
+
+export default debt;
