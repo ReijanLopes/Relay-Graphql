@@ -1,0 +1,36 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "ios-relay": "yarn run relay-compiler && expo start --ios",
+    "android-relay": "yarn run relay-compiler && expo start --android",
+    "relay": "relay-compiler"
+  },
+  "dependencies": {
+    "expo": "~48.0.18",
+    "expo-status-bar": "~1.4.4",
+    "graphql-ws": "^5.14.0",
+    "react": "18.2.0",
+    "react-native": "0.71.8",
+    "react-relay": "^15.0.0",
+    "react-router-native": "^6.14.1",
+    "relay": "^0.8.0-1",
+    "relay-runtime": "^15.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@tsconfig/react-native": "^3.0.2",
+    "@types/jest": "^29.5.3",
+    "@types/react": "^18.2.14",
+    "@types/react-test-renderer": "^18.0.0",
+    "@types/relay-runtime": "^14.1.12",
+    "relay-compiler": "^15.0.0",
+    "typescript": "^5.1.6"
+  },
+  "private": true
+}

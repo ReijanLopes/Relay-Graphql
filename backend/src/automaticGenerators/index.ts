@@ -1,4 +1,4 @@
-import fs from "fs";
+import { mkdir, writeFile } from "fs";
 import path from "path";
 import { printSchema, GraphQLSchema } from "graphql";
 
@@ -13,9 +13,9 @@ function generate_typesInput(schemaText: string) {
     .trim();
 
   const directoryPath = path.join(__dirname, "../types");
-  fs.mkdir(directoryPath, () => {
+  mkdir(directoryPath, () => {
     const filePath = path.join(directoryPath, "index.ts");
-    fs.writeFile(filePath, typesInput, (err) => {
+    writeFile(filePath, typesInput, (err) => {
       if (err) {
         console.error(err);
       }
@@ -24,10 +24,12 @@ function generate_typesInput(schemaText: string) {
 }
 
 function generate_schemaGraphql(schemaText: string) {
-  fs.writeFile("../schema.graphql", schemaText, (err) => {
-    if (err) {
-      throw err;
-    }
+  mkdir("../frontend/graphql", () => {
+    writeFile("../frontend/graphql/schema.graphql", schemaText, (err) => {
+      if (err) {
+        throw err;
+      }
+    });
   });
 }
 
