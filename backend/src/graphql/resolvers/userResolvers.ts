@@ -53,7 +53,6 @@ export const listUser = async (
 
 export const mutationUser = async (_: any, { input }: { input: UserInput }) => {
   const { _id, ...res } = input;
-  console.log(_id, res);
   if (!_id) {
     try {
       const createUser = await user.create(res);
@@ -74,7 +73,6 @@ export const mutationUser = async (_: any, { input }: { input: UserInput }) => {
 export const deleteUser = async (_: any, { _id }: { _id: string }) => {
   try {
     const userDeleted = await user.deleteOne({ _id }).lean();
-    console.log(_id, userDeleted);
     if (userDeleted?.deletedCount === 1) {
       await card.deleteMany({ user: _id });
       await debt.deleteMany({ user: _id });

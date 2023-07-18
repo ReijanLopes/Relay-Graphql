@@ -4,6 +4,7 @@ import { NativeRouter, Route, Routes } from "react-router-native";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 
 import RelayEnvironment from "./relay/RelayEnvironment";
+import PaymentMethod from "./src/PaymentMethod";
 
 const LoadingSpinner = () => {
   return (
@@ -19,7 +20,7 @@ export default function App() {
       <NativeRouter>
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
-            <Route path="/" element={<></>} />
+            <Route path="/" element={<PaymentMethod />} />
             <Route path="/paymentPix" element={<></>} />
             <Route path="/paymentCard" element={<></>} />
           </Routes>

@@ -12,11 +12,14 @@
     "relay": "relay-compiler"
   },
   "dependencies": {
+    "@expo/vector-icons": "^13.0.0",
     "expo": "~48.0.18",
     "expo-status-bar": "~1.4.4",
-    "graphql-ws": "^5.14.0",
+    "graphql": "^16.6.0",
+    "graphql-ws": "^5.12.1",
     "react": "18.2.0",
     "react-native": "0.71.8",
+    "react-native-dotenv": "^3.4.9",
     "react-relay": "^15.0.0",
     "react-router-native": "^6.14.1",
     "relay": "^0.8.0-1",
@@ -24,14 +27,19 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "@babel/preset-env": "^7.22.9",
     "@tsconfig/react-native": "^3.0.2",
     "@types/jest": "^29.5.3",
-    "@types/react": "^18.2.14",
+    "@types/react": "~18.0.27",
+    "@types/react-native-dotenv": "^0.2.0",
     "@types/react-relay": "^14.1.4",
     "@types/react-test-renderer": "^18.0.0",
     "@types/relay-runtime": "^14.1.12",
+    "babel-plugin-module-resolver": "^5.0.0",
+    "babel-plugin-relay": "^15.0.0",
+    "eslint-config-prettier": "^8.8.0",
     "relay-compiler": "^15.0.0",
-    "typescript": "^5.1.6"
+    "typescript": "^4.9.4"
   },
   "private": true
 }

@@ -43,7 +43,7 @@ const query = new GraphQLObjectType({
       name: "getDebt",
       type: debtTypeDefinition,
       args: {
-        id: {
+        _id: {
           type: new GraphQLNonNull(GraphQLID),
         },
       },

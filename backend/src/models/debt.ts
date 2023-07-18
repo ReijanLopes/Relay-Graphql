@@ -4,7 +4,7 @@ import pubsub from "../redis";
 const debtSchema = new Schema(
   {
     value: { type: Number, required: [true, "Value is required"] },
-    cashback: { type: Number, default: 0 },
+    cashback: { type: Number },
     numberOfInstallments: { type: Number, default: 1 },
     totalValue: {
       type: { type: Number },
@@ -39,9 +39,8 @@ const debtSchema = new Schema(
 );
 
 debtSchema.post("save", (doc) => {
-  pubsub.publish("DEBT_ADDED", { debtAdded: doc });
+  pubsub.publish("DEBT_ADDED", { cardAdded: doc });
 });
+const Debt = model("Debt", debtSchema, "debts");
 
-const debt = model("Debt", debtSchema);
-
-export default debt;
+export default Debt;

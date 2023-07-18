@@ -11,7 +11,7 @@ import {
 import { createClient } from "graphql-ws";
 import { Platform } from "react-native";
 
-const port = process.env.REACT_APP_API_PORT || 3002;
+const port = 4005 || 3002;
 
 const url =
   Platform.OS === "ios"
