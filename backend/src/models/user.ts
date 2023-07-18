@@ -11,6 +11,7 @@ const userSchema = new Schema(
       require: [true, "Email is required"],
       unique: [true, "Email already exists"],
     },
+    cashDesk: { type: Number, default: 0 },
     cards: { type: [Schema.Types.ObjectId], ref: "Card" },
     debts: { type: [Schema.Types.ObjectId], ref: "Debt" },
   },

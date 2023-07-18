@@ -24,8 +24,8 @@ function generate_typesInput(schemaText: string) {
 }
 
 function generate_schemaGraphql(schemaText: string) {
-  mkdir("../frontend/graphql", () => {
-    writeFile("../frontend/graphql/schema.graphql", schemaText, (err) => {
+  mkdir("../frontend/src/schema", () => {
+    writeFile("../frontend/src/schema/schema.graphql", schemaText, (err) => {
       if (err) {
         throw err;
       }

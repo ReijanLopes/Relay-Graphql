@@ -21,6 +21,7 @@ import { schema } from "./graphql/index";
 
 import "dotenv/config";
 import debt from "./models/debt";
+import tax from "./models/tax";
 
 const mongoDB = process.env.MONGODB_CONNECT as string;
 const port = process.env.PORT;
@@ -47,9 +48,6 @@ app.use(
     } else {
       const { operationName, query, variables } = getGraphQLParameters(request);
 
-      console.log("operationName", operationName);
-      console.log("query", query);
-      console.log("variables", variables);
       const result = await processRequest({
         operationName,
         query,
