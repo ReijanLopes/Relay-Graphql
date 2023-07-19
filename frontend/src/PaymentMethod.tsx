@@ -1,5 +1,12 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { ScrollView, SafeAreaView, View, Text, Pressable } from "react-native";
+import {
+  ScrollView,
+  SafeAreaView,
+  View,
+  Text,
+  Pressable,
+  Dimensions,
+} from "react-native";
 import { useLazyLoadQuery, graphql } from "react-relay";
 import { useNavigate, useSearchParams } from "react-router-native";
 import { Octicons } from "@expo/vector-icons";
@@ -29,6 +36,9 @@ const PaymentMethodQuery = graphql`
     }
   }
 `;
+
+const screenHeight = Dimensions.get("window").height;
+const height = screenHeight - 220;
 
 const immediateRefund = (value: number, cashback: number) => {
   return Math.floor((value / 100) * cashback).toLocaleString("pt-BR", {
@@ -323,7 +333,7 @@ export default function PaymentMethod() {
             {Array.from({ length: numberOfInstallments }).map(renderList)}
           </View>
         ) : (
-          <View>
+          <View style={[styles.center, { height: height }]}>
             <Text>Lamentamos, mas ocorreu um erro</Text>
           </View>
         )}

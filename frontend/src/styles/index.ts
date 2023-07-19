@@ -25,6 +25,12 @@ const styles = StyleSheet.create({
   padding_10: {
     padding: 10,
   },
+  padding_30: {
+    padding: 30,
+  },
+  paddingTop_40: {
+    paddingTop: 40,
+  },
   title: {
     fontSize: 16,
     width: 260,
@@ -53,9 +59,6 @@ const styles = StyleSheet.create({
   flex_1: {
     flex: 1,
   },
-  paddingTop_40: {
-    paddingTop: 40,
-  },
   bgColor_white: {
     backgroundColor: "#FFFF",
   },
@@ -65,11 +68,20 @@ const styles = StyleSheet.create({
   borderWidth_1: {
     borderWidth: 1,
   },
+  borderWidth_2: {
+    borderWidth: 2,
+  },
   minH_full: {
     minHeight: "100%",
   },
   marginR_5: {
     marginRight: 5,
+  },
+  marginTop_10: {
+    marginTop: 10,
+  },
+  color_red: {
+    color: "#ff0000",
   },
   borderStartRadius: {
     borderTopStartRadius: 5,
@@ -83,10 +95,17 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 20,
   },
+  marginBottom_15: {
+    marginBottom: 15,
+  },
   cashback: { color: "#00e2ae", marginTop: 5 },
   center: {
     alignItems: "center",
     justifyContent: "center",
+  },
+  textCenter: {
+    textAlign: "center",
+    textAlignVertical: "center",
   },
   size_20: {
     width: 20,
@@ -101,12 +120,37 @@ const styles = StyleSheet.create({
     marginTop: 5,
     borderRadius: 4,
   },
-  selectedElement: { borderColor: "#00e2ae", backgroundColor: "#f0fcf8" },
+  text_gray: {
+    color: "#b9b8b9",
+    fontWeight: "500",
+    marginRight: 2,
+  },
+  infoContainer: {
+    gap: 5,
+    marginTop: 30,
+  },
+  paddingTopBottom_20: {
+    paddingBottom: 10,
+    paddingTop: 10,
+  },
+  smallCircle: {
+    width: 15,
+    height: 15,
+    borderWidth: 2,
+    marginRight: 10,
+  },
   titleCategory: {
     paddingRight: 12,
     paddingLeft: 12,
     backgroundColor: "#e1e1e1",
     borderRadius: 8,
+  },
+  stepsLine: {
+    height: 18,
+    borderLeftWidth: 1,
+    borderLeftColor: "#d8e1ef",
+    top: 15,
+    left: 7,
   },
   border_gray: {
     borderColor: "#d8e1ef",
@@ -120,6 +164,10 @@ const styles = StyleSheet.create({
     minHeight: 60,
     borderColor: "#cdd5e1",
   },
+  selectedElement: {
+    borderColor: "#00e2ae",
+    backgroundColor: "#f0fcf8",
+  },
   triangle: {
     borderTopStartRadius: 2,
     borderBottomEndRadius: 20,
@@ -127,6 +175,11 @@ const styles = StyleSheet.create({
     right: -11,
     top: 2,
     transform: [{ rotate: "-45deg" }],
+  },
+  QrCodeContainer: {
+    borderColor: "#00DDA1",
+    width: 270,
+    height: 270,
   },
   headerLogo: { width: 100, height: 38.19 },
   footerText: {
