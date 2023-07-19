@@ -18,6 +18,7 @@ const user = {
   _id: { type: GraphQLID },
   name: { type: GraphQLString },
   email: { type: GraphQLString },
+  cashDesk: { type: GraphQLInt },
   ...timestamps,
 };
 

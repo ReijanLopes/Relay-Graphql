@@ -2,6 +2,7 @@ import { GraphQLID, GraphQLObjectType } from "graphql";
 
 import { deleteUser, mutationUser } from "./resolvers/userResolvers";
 import { mutationCard } from "./resolvers/cardResolvers";
+import { mutationDebt } from "./resolvers/debtResolvers";
 
 import {
   cardInput,
@@ -9,6 +10,8 @@ import {
   userInput,
   userTypeDefinition,
   deleteMessage,
+  debtTypeDefinition,
+  debtInput,
 } from "./graphqlTypes";
 
 const mutation = new GraphQLObjectType({
@@ -28,6 +31,13 @@ const mutation = new GraphQLObjectType({
         input: { type: cardInput },
       },
       resolve: mutationCard,
+    },
+    mutationDebt: {
+      type: debtTypeDefinition,
+      args: {
+        input: { type: debtInput },
+      },
+      resolve: mutationDebt,
     },
     deleteUser: {
       type: deleteMessage,

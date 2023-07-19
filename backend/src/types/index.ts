@@ -2,6 +2,7 @@ export type UserInput = {
   _id: string
   name: string
   email: string
+  cashDesk: number
   createdAt: string
   updatedAt: string
   cards: [string]
@@ -20,11 +21,6 @@ export type CardInput = {
   debts: [string]
   user: string
 }
-
-
-
-
-
 
 export type DebtInput = {
   _id: string
