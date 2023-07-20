@@ -310,7 +310,9 @@ export default function PaymentMethod() {
   );
 
   return (
-    <ScrollView style={[styles.marginTopBottom_20, styles.fullWidth]}>
+    <ScrollView
+      style={[styles.marginTopBottom_20, styles.fullWidth, styles.flex_1]}
+    >
       <SafeAreaView
         style={[
           styles.flex_1,
@@ -321,9 +323,9 @@ export default function PaymentMethod() {
         ]}
       >
         <Header />
-        <View style={styles.marginTopBottom_20}>
+        <View style={[styles.marginTopBottom_20, styles.center]}>
           {name && (
-            <Text style={[styles.bold, styles.title, styles.center]}>
+            <Text style={[styles.bold, styles.title, styles.textCenter]}>
               {name}, como você quer pagar?
             </Text>
           )}
@@ -334,7 +336,7 @@ export default function PaymentMethod() {
           </View>
         ) : (
           <View style={[styles.center, { height: height }]}>
-            <Text>Lamentamos, mas ocorreu um erro</Text>
+            <Text style={styles.bold}>Lamentamos, mas ocorreu um erro</Text>
           </View>
         )}
 
