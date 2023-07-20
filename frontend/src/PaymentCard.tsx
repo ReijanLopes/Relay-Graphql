@@ -85,32 +85,40 @@ export default function PaymentCard() {
 
   const installment = query?.getDebt?.installments || [];
 
-  const installments =
-    installment.map(({ idMonth, value, status }) => ({
-      value: String(idMonth),
-      label: `${idMonth}x ${formatNumberInString(value)}`,
-      status,
-    })) || [];
+  const { installmentFilter, installmentFormat } = useMemo(() => {
+    const installmentFormat =
+      installment.map(({ idMonth, value, status }) => ({
+        value: String(idMonth),
+        label: `${idMonth}x ${formatNumberInString(value)}`,
+        status,
+      })) || [];
 
-  const installmentFilter = installments.filter(({ status }) =>
-    status != "Paid" ? status : null
-  );
+    const installmentFilter = installmentFormat.filter(({ status }) =>
+      status != "Paid" ? status : null
+    );
+
+    return { installmentFilter, installmentFormat };
+  }, [installment]);
 
   const cet = query?.getDebt?.tax?.cet || 0;
   const name = query?.getDebt?.user?.name;
+  const expiration = query?.getDebt?.card?.expiration;
   const portion = installment?.length || 0;
-  const installmentPayment = formatNumberInString(
-    query?.getDebt?.installments?.[0]?.value || 0
-  );
-  const totalValue = formatNumberInString(query?.getDebt?.totalValue || 0);
+  const total = query?.getDebt?.totalValue || 0;
+  const installmentsValue = query?.getDebt?.installments?.[0]?.value || 0;
 
-  const title = useMemo(
-    () =>
-      portion > 1
-        ? `pague a parcela ${portion}x no cartão`
-        : `pague o restante em ${portion}x no cartão`,
-    [portion]
-  );
+  const { installmentPayment, totalString, title, expirationString } =
+    useMemo(() => {
+      const installmentPayment = formatNumberInString(installmentsValue);
+      const totalString = formatNumberInString(total);
+      const expirationString = formatExpiringInDate(Number(expiration));
+      const title =
+        portion > 1
+          ? `pague a parcela ${portion}x no cartão`
+          : `pague o restante em ${portion}x no cartão`;
+
+      return { installmentPayment, totalString, title, expirationString };
+    }, [total, installmentsValue, portion, expiration]);
 
   return (
     <ScrollView
@@ -145,9 +153,7 @@ export default function PaymentCard() {
             name: query?.getDebt?.card?.name,
             cpf: query?.getDebt?.card?.cpf,
             number: query?.getDebt?.card?.number,
-            expiration: formatExpiringInDate(
-              Number(query?.getDebt?.card?.expiration)
-            ),
+            expiration: expirationString,
             cvv: query?.getDebt?.card?.cvv,
             installment: installment,
           }}
@@ -180,7 +186,7 @@ export default function PaymentCard() {
           {({ handleChange, handleBlur, handleSubmit, values }) => (
             <View style={[styles.gap_20, styles.fullWidth]}>
               <TextInput
-                value={values?.name!}
+                value={values?.name}
                 placeholder="Digite o nome completo"
                 label="Nome completo"
                 onChange={handleChange("name")}
@@ -267,10 +273,10 @@ export default function PaymentCard() {
         <Info
           debtId={debtId}
           cet={cet}
-          installmentPayment={installment}
+          installmentPayment={installmentFormat}
           installmentLength={installment.length}
           valueOfInstallments={installmentPayment}
-          totalMoreTax={totalValue}
+          totalMoreTax={totalString}
         />
         <Footer />
       </SafeAreaView>

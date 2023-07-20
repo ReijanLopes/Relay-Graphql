@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<d4651b141174e0e6663396e3620f6ced>>
+ * @generated SignedSource<<2709e24e42827cbd6171a9f7150cd56e>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -33,10 +33,10 @@ export type InstallmentsInput = {
 };
 export type UserInput = {
   _id?: string | null;
-  cards?: ReadonlyArray<string | null> | null;
+  cards?: string | null;
   cashDesk?: number | null;
   createdAt?: string | null;
-  debts?: ReadonlyArray<string | null> | null;
+  debts?: string | null;
   email?: string | null;
   name?: string | null;
   updatedAt?: string | null;

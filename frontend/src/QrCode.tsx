@@ -65,6 +65,7 @@ const QrCode = ({
         };
       }
     );
+
     commit({
       variables: {
         inputDebt: {
@@ -75,6 +76,7 @@ const QrCode = ({
         },
         inputUser: {
           _id: variables?.userId,
+          debts: variables?.debtId,
           cashDesk:
             variables.installment == 0
               ? variables?.totalMoreTax * variables?.cashback
