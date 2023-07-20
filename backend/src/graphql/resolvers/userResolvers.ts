@@ -52,7 +52,7 @@ export const listUser = async (
 };
 
 export const mutationUser = async (_: any, { input }: { input: UserInput }) => {
-  const { _id, ...res } = input;
+  const { _id, cashDesk, ...res } = input;
   if (!_id) {
     try {
       const createUser = await user.create(res);
@@ -62,7 +62,7 @@ export const mutationUser = async (_: any, { input }: { input: UserInput }) => {
     }
   } else {
     try {
-      await user.updateOne({ _id }, res);
+      await user.updateOne({ _id }, { $inc: { cashDesk: cashDesk }, ...res });
     } catch (error) {
       throw new GraphQLError(error?.message);
     }

@@ -6,6 +6,7 @@ import { View, ActivityIndicator, StyleSheet } from "react-native";
 import RelayEnvironment from "./relay/RelayEnvironment";
 import PaymentMethod from "./src/PaymentMethod";
 import PaymentPix from "./src/PaymentPix";
+import PaymentCard from "./src/PaymentCard";
 
 const LoadingSpinner = () => {
   return (
@@ -23,11 +24,10 @@ export default function App() {
           <Routes>
             <Route path="/" element={<PaymentMethod />} />
             <Route path="/paymentPix" element={<PaymentPix />} />
-            <Route path="/paymentCard" element={<></>} />
+            <Route path="/paymentCard" element={<PaymentCard />} />
           </Routes>
         </Suspense>
       </NativeRouter>
-
       <StatusBar style="auto" />
     </RelayEnvironment>
   );

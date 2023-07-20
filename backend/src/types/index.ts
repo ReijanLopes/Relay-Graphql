@@ -5,8 +5,8 @@ export type UserInput = {
   cashDesk: number
   createdAt: string
   updatedAt: string
-  cards: [string]
-  debts: [string]
+  cards: string
+  debts: string
 }
 
 export type CardInput = {
@@ -18,7 +18,7 @@ export type CardInput = {
   cvv: number
   createdAt: string
   updatedAt: string
-  debts: [string]
+  debts: string
   user: string
 }
 

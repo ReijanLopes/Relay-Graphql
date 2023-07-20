@@ -128,8 +128,8 @@ export const userInput = new GraphQLInputObjectType({
   name: "UserInput",
   fields: {
     ...user,
-    cards: { type: new GraphQLList(GraphQLString) },
-    debts: { type: new GraphQLList(GraphQLString) },
+    cards: { type: GraphQLString },
+    debts: { type: GraphQLString },
   },
 });
 
@@ -137,7 +137,7 @@ export const cardInput = new GraphQLInputObjectType({
   name: "CardInput",
   fields: {
     ...card,
-    debts: { type: new GraphQLList(GraphQLID) },
+    debts: { type: GraphQLID },
     user: { type: GraphQLID },
   },
 });
