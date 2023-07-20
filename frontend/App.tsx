@@ -7,6 +7,7 @@ import RelayEnvironment from "./relay/RelayEnvironment";
 import PaymentMethod from "./src/PaymentMethod";
 import PaymentPix from "./src/PaymentPix";
 import PaymentCard from "./src/PaymentCard";
+import ErrorBoundaryRetry from "./src/ErrorBoundaryRetry";
 
 const LoadingSpinner = () => {
   return (
@@ -19,15 +20,17 @@ const LoadingSpinner = () => {
 export default function App() {
   return (
     <RelayEnvironment>
-      <NativeRouter>
-        <Suspense fallback={<LoadingSpinner />}>
-          <Routes>
-            <Route path="/" element={<PaymentMethod />} />
-            <Route path="/paymentPix" element={<PaymentPix />} />
-            <Route path="/paymentCard" element={<PaymentCard />} />
-          </Routes>
-        </Suspense>
-      </NativeRouter>
+      <ErrorBoundaryRetry>
+        <NativeRouter>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route path="/" element={<PaymentMethod />} />
+              <Route path="/paymentPix" element={<PaymentPix />} />
+              <Route path="/paymentCard" element={<PaymentCard />} />
+            </Routes>
+          </Suspense>
+        </NativeRouter>
+      </ErrorBoundaryRetry>
       <StatusBar style="auto" />
     </RelayEnvironment>
   );
