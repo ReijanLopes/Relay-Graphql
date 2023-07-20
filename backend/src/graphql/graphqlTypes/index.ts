@@ -137,7 +137,7 @@ export const cardInput = new GraphQLInputObjectType({
   name: "CardInput",
   fields: {
     ...card,
-    debts: { type: new GraphQLList(GraphQLID) },
+    debts: { type: GraphQLID },
     user: { type: GraphQLID },
   },
 });

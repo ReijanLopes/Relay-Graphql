@@ -83,6 +83,26 @@ const styles = StyleSheet.create({
   color_red: {
     color: "#ff0000",
   },
+  gap_20: {
+    gap: 20,
+  },
+  marginBottom_15: {
+    marginBottom: 15,
+  },
+  display_none: {
+    display: "none",
+  },
+  overflow_hidden: {
+    overflow: "hidden",
+  },
+  marginTopBottom_20: {
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  buttonFormCard: {
+    padding: 5,
+    borderRadius: 4,
+  },
   borderStartRadius: {
     borderTopStartRadius: 5,
     borderTopEndRadius: 5,
@@ -90,13 +110,6 @@ const styles = StyleSheet.create({
   borderEndRadius: {
     borderBottomEndRadius: 5,
     borderBottomStartRadius: 5,
-  },
-  marginTopBottom_20: {
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  marginBottom_15: {
-    marginBottom: 15,
   },
   cashback: { color: "#00e2ae", marginTop: 5 },
   center: {
@@ -133,10 +146,13 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     paddingTop: 10,
   },
+  borderColor_d8e1ef: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#d8e1ef",
+  },
   smallCircle: {
     width: 15,
     height: 15,
-    borderWidth: 2,
     marginRight: 10,
   },
   titleCategory: {
@@ -151,6 +167,19 @@ const styles = StyleSheet.create({
     borderLeftColor: "#d8e1ef",
     top: 15,
     left: 7,
+  },
+  titleInputContainer: {
+    left: 10,
+    top: -6,
+    zIndex: 1,
+    paddingLeft: 2,
+    paddingRight: 2,
+  },
+  borderRadius_3: {
+    borderTopStartRadius: 3,
+    borderTopEndRadius: 3,
+    borderBottomEndRadius: 3,
+    borderBottomStartRadius: 3,
   },
   border_gray: {
     borderColor: "#d8e1ef",

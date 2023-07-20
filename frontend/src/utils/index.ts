@@ -37,3 +37,55 @@ export const formatDate_DDMMYYYYHHMM = (value: number | string) => {
 
   return `${dateString} - ${timeString}`;
 };
+
+export const maskCPF = (cpf: string) => {
+  return (
+    cpf
+      .substring(0, 14)
+      .replace(/\D/g, "")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2") || ""
+  );
+};
+
+export const maskCardNumber = (cardNumber: string) => {
+  return (
+    cardNumber
+      .substring(0, 19)
+      .replace(/\D/g, "")
+      .replace(/(\d{4})(\d)/, "$1.$2")
+      .replace(/(\d{4})(\d)/, "$1.$2")
+      .replace(/(\d{4})(\d)/, "$1.$2") || ""
+  );
+};
+
+export const maskValidate = (validate: string) => {
+  const month = Number(validate.slice(0, 2));
+
+  if (month > 12) {
+    return { error: "Data inválida" };
+  }
+
+  if (Number(validate?.[0]) > 1) {
+    return `0${validate?.[0]}`;
+  }
+
+  return validate
+    .replace(/\D/g, "")
+    .replace(/(\d{2})(\d)/, "$1/$2")
+    .substring(0, 5);
+};
+
+export const maskCVV = (cvv: string) => {
+  return cvv.substring(0, 3);
+};
+
+export const formatExpiringInDate = (expiration: number) => {
+  const data = new Date(expiration);
+  const month = data.getMonth() + 1;
+  const year = String(data.getFullYear()).slice(2, 4);
+  const formatMonth = month < 10 ? `0${month}` : month;
+
+  return `${formatMonth}/${year}`;
+};

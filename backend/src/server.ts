@@ -20,8 +20,6 @@ import automaticGenerators from "./automaticGenerators";
 import { schema } from "./graphql/index";
 
 import "dotenv/config";
-import debt from "./models/debt";
-import tax from "./models/tax";
 
 const mongoDB = process.env.MONGODB_CONNECT as string;
 const port = process.env.PORT;

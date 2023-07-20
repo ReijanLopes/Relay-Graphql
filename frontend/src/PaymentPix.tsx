@@ -18,7 +18,6 @@ import { PaymentPixQuery as PaymentPixQueryType } from "./__generated__/PaymentP
 const PaymentPixQuery = graphql`
   query PaymentPixQuery($userId: ID!, $debtId: ID!) {
     getUser(_id: $userId) {
-      _id
       name
     }
     getDebt(_id: $debtId) {

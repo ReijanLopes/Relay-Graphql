@@ -203,7 +203,7 @@ type borderRadiusSelectPayment = {
 const title = ["Pix", "Pix Parcelado"];
 export default function PaymentMethod() {
   const [params] = useSearchParams();
-  const userId = "649ebb8113cfd6c49ca21e4d" || params.get("userId"); // add your userId;
+  const userId = "64b83a4d339c9a6a82a5e8fe" || params.get("userId"); // add your userId;
   const debtId = "64b1ab19ffc4fcdd475daff9" || params.get("debtId"); // add your debtId;
 
   const query = useLazyLoadQuery<PaymentMethodQueryType>(PaymentMethodQuery, {

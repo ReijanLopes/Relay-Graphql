@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<daf692c979f22d30df0ed2e0a4429442>>
+ * @generated SignedSource<<ab3bad3b89e900d5dd2cf6ad316ff855>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -23,7 +23,6 @@ export type PaymentPixQuery$data = {
     readonly value: number | null;
   } | null;
   readonly getUser: {
-    readonly _id: string | null;
     readonly name: string | null;
   } | null;
 };
@@ -65,13 +64,6 @@ v3 = [
     "name": "getUser",
     "plural": false,
     "selections": [
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
-        "name": "_id",
-        "storageKey": null
-      },
       {
         "alias": null,
         "args": null,
@@ -151,16 +143,16 @@ return {
     "selections": (v3/*: any*/)
   },
   "params": {
-    "cacheID": "192137dd0e3d2d38f4f317f20e49c2ec",
+    "cacheID": "01fea0a6fc2063cfd890b64f75ad740d",
     "id": null,
     "metadata": {},
     "name": "PaymentPixQuery",
     "operationKind": "query",
-    "text": "query PaymentPixQuery(\n  $userId: ID!\n  $debtId: ID!\n) {\n  getUser(_id: $userId) {\n    _id\n    name\n  }\n  getDebt(_id: $debtId) {\n    value\n    cashback\n    tax {\n      value\n      cet\n    }\n  }\n}\n"
+    "text": "query PaymentPixQuery(\n  $userId: ID!\n  $debtId: ID!\n) {\n  getUser(_id: $userId) {\n    name\n  }\n  getDebt(_id: $debtId) {\n    value\n    cashback\n    tax {\n      value\n      cet\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "a3daf96c5fb8af46eeccd1ff71095926";
+(node as any).hash = "13d3a928d4e49d028707fc09b6751a52";
 
 export default node;

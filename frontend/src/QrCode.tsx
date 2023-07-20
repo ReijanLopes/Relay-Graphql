@@ -48,7 +48,6 @@ const QrCode = ({
   const [charge, setCharge] = useState<Charge | null>(null);
 
   const navigate = useNavigate();
-
   const data = new Date();
   const currentMonth = data.getMonth();
   data.setDate(5);
@@ -75,6 +74,7 @@ const QrCode = ({
           user: variables?.userId,
         },
         inputUser: {
+          _id: variables?.userId,
           cashDesk:
             variables.installment == 0
               ? variables?.totalMoreTax * variables?.cashback
@@ -82,9 +82,11 @@ const QrCode = ({
         },
       },
       onCompleted() {
-        navigate(
-          `/paymentCard?userId=${variables?.userId}&debtId=${variables?.debtId}`
-        );
+        variables?.installment === 0
+          ? null
+          : navigate(
+              `/paymentCard?userId=${variables?.userId}&debtId=${variables?.debtId}`
+            );
       },
       onError(error) {
         setError(error);
@@ -166,6 +168,7 @@ const QrCode = ({
           styles.marginTop_10,
         ]}
         onPress={() => {
+          handlePay(charge);
           copyToClipboard();
         }}
       >

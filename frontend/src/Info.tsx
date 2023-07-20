@@ -39,6 +39,7 @@ const Steps = ({
           style={[
             styles.border_gray,
             styles.smallCircle,
+            styles.borderWidth_2,
             selected && styles.selectedElement,
           ]}
         >

@@ -18,7 +18,7 @@ export type CardInput = {
   cvv: number
   createdAt: string
   updatedAt: string
-  debts: [string]
+  debts: string
   user: string
 }
 
