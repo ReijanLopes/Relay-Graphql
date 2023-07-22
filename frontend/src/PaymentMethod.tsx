@@ -299,7 +299,7 @@ export default function PaymentMethod() {
           onNavigate={() => {
             validatedAction
               ? navigate(
-                  `/paymentPix?userId=${userId}&debtId=${debtId}&installment=${idx}`
+                  `/pix?userId=${userId}&debtId=${debtId}&installment=${idx}`
                 )
               : null;
           }}

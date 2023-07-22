@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { ScrollView, SafeAreaView, View, Text, Pressable } from "react-native";
 import { useLazyLoadQuery, graphql, useMutation } from "react-relay";
 import { Formik } from "formik";
-import { useSearchParams } from "react-router-native";
+import { useSearchParams, useNavigate } from "react-router-native";
 
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -71,11 +71,27 @@ const textErrors = {
   cvv: "Código de segurança é necessário",
 };
 
+type Error = {
+  errorSubmit?: string;
+  name: string;
+  cpf: string;
+  number: string;
+  cvv: string;
+  expiration: string;
+};
+
+type Installment = {
+  idMonth: number;
+  value: number;
+  status: string;
+};
+
 export default function PaymentCard() {
+  const navigate = useNavigate();
   const [params] = useSearchParams();
   const debtId = params.get("debtId");
 
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<Error | null>(null);
 
   const query = useLazyLoadQuery<PaymentCardQueryType>(PaymentCardQuery, {
     debtId,
@@ -87,14 +103,14 @@ export default function PaymentCard() {
 
   const { installmentFilter, installmentFormat } = useMemo(() => {
     const installmentFormat =
-      installment.map(({ idMonth, value, status }) => ({
+      installment.map(({ idMonth, value, status }: Installment) => ({
         value: String(idMonth),
         label: `${idMonth}x ${formatNumberInString(value)}`,
         status,
       })) || [];
 
-    const installmentFilter = installmentFormat.filter(({ status }) =>
-      status != "Paid" ? status : null
+    const installmentFilter = installmentFormat.filter(
+      ({ status }: { status: string }) => (status != "Paid" ? status : null)
     );
 
     return { installmentFilter, installmentFormat };
@@ -174,8 +190,8 @@ export default function PaymentCard() {
                   debts: query?.getDebt?._id,
                 },
               },
-              onCompleted(data) {
-                //go to required page
+              onCompleted() {
+                navigate("/confirmed");
               },
               onError(error) {
                 setError((e) => ({ ...e, errorSubmit: error }));
