@@ -84,11 +84,11 @@ const QrCode = ({
         },
       },
       onCompleted() {
-        variables?.installment === 0
-          ? null
-          : navigate(
-              `/paymentCard?userId=${variables?.userId}&debtId=${variables?.debtId}`
-            );
+        navigate(
+          variables?.installment === 0
+            ? "/confirmed"
+            : `/card?userId=${variables?.userId}&debtId=${variables?.debtId}`
+        );
       },
       onError(error) {
         setError(error);

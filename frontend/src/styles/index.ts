@@ -25,6 +25,9 @@ const styles = StyleSheet.create({
   padding_10: {
     padding: 10,
   },
+  padding_20: {
+    padding: 20,
+  },
   padding_30: {
     padding: 30,
   },
