@@ -1,8 +1,8 @@
 import { RedisPubSub } from "graphql-redis-subscriptions";
 import Redis from "ioredis";
 
-const host = process.env.REDIS_HOST || "127.0.0.1";
-const port = process.env.REDIS_PORT ? process.env.REDIS_PORT : "6379";
+const host = process.env.REDIS_HOST || "localhost";
+const port = process.env.REDIS_PORT || "6379";
 
 const options = {
   host: host,

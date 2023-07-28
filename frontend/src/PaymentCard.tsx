@@ -28,10 +28,8 @@ const PaymentCardQuery = graphql`
     getDebt(_id: $debtId) {
       _id
       value
-      totalValue
       tax {
         value
-        cet
       }
       installments {
         status
@@ -51,6 +49,7 @@ const PaymentCardQuery = graphql`
         expiration
         cvv
       }
+      ...Info_DebtFragment
     }
   }
 `;
@@ -80,12 +79,6 @@ type Error = {
   expiration: string;
 };
 
-type Installment = {
-  idMonth: number;
-  value: number;
-  status: string;
-};
-
 export default function PaymentCard() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -101,40 +94,34 @@ export default function PaymentCard() {
 
   const installment = query?.getDebt?.installments || [];
 
-  const { installmentFilter, installmentFormat } = useMemo(() => {
-    const installmentFormat =
-      installment.map(({ idMonth, value, status }: Installment) => ({
+  const { installmentFilter, installmentPayment } = useMemo(() => {
+    const installmentPayment =
+      installment.map(({ idMonth, value, status }) => ({
         value: String(idMonth),
         label: `${idMonth}x ${formatNumberInString(value)}`,
         status,
       })) || [];
 
-    const installmentFilter = installmentFormat.filter(
+    const installmentFilter = installmentPayment.filter(
       ({ status }: { status: string }) => (status != "Paid" ? status : null)
     );
 
-    return { installmentFilter, installmentFormat };
+    return { installmentFilter, installmentPayment };
   }, [installment]);
 
-  const cet = query?.getDebt?.tax?.cet || 0;
   const name = query?.getDebt?.user?.name;
   const expiration = query?.getDebt?.card?.expiration;
   const portion = installment?.length || 0;
-  const total = query?.getDebt?.totalValue || 0;
-  const installmentsValue = query?.getDebt?.installments?.[0]?.value || 0;
 
-  const { installmentPayment, totalString, title, expirationString } =
-    useMemo(() => {
-      const installmentPayment = formatNumberInString(installmentsValue);
-      const totalString = formatNumberInString(total);
-      const expirationString = formatExpiringInDate(Number(expiration));
-      const title =
-        portion > 1
-          ? `pague a parcela ${portion}x no cartão`
-          : `pague o restante em ${portion}x no cartão`;
+  const { title, expirationString } = useMemo(() => {
+    const expirationString = formatExpiringInDate(Number(expiration));
+    const title =
+      portion > 1
+        ? `pague a parcela ${portion}x no cartão`
+        : `pague o restante em ${portion}x no cartão`;
 
-      return { installmentPayment, totalString, title, expirationString };
-    }, [total, installmentsValue, portion, expiration]);
+    return { title, expirationString };
+  }, [portion, expiration]);
 
   return (
     <ScrollView
@@ -287,12 +274,9 @@ export default function PaymentCard() {
         ) : null}
 
         <Info
-          debtId={debtId}
-          cet={cet}
-          installmentPayment={installmentFormat}
+          data={query?.getDebt}
+          installmentPayment={installmentPayment}
           installmentLength={installment.length}
-          valueOfInstallments={installmentPayment}
-          totalMoreTax={totalString}
         />
         <Footer />
       </SafeAreaView>

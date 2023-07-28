@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import "core-js/stable";
-import { graphql, useMutation } from "react-relay";
+import { graphql, useFragment, useMutation } from "react-relay";
 import { useOpenPix, Charge } from "@openpix/react";
 import QRCode from "react-native-qrcode-svg";
 import { useNavigate } from "react-router-native";
@@ -9,21 +9,16 @@ import { View, Text, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 
-import { formatDate_DDMMYYYYHHMM, useDebounce } from "./utils";
+import {
+  formatDate_DDMMYYYYHHMM,
+  useDebounce,
+  calculatingInstallmentValue,
+} from "./utils";
 
 import styles from "./styles";
 
 import type { QrCodeMutation as QrCodeMutationType } from "./__generated__/QrCodeMutation.graphql";
-
-type Variables = {
-  tax?: number | null;
-  debtId: string | null;
-  userId: string | null;
-  installment: number;
-  totalMoreTax: number;
-  valueOfInstallments: number;
-  cashback: number;
-};
+import type { QrCode_DebtFragment$key as QrCode_DebtFragmentType } from "./__generated__/QrCode_DebtFragment.graphql";
 
 const QrCodeMutation = graphql`
   mutation QrCodeMutation($inputDebt: DebtInput, $inputUser: UserInput) {
@@ -37,30 +32,60 @@ const QrCodeMutation = graphql`
   }
 `;
 
+const QrCodeFragment = graphql`
+  fragment QrCode_DebtFragment on Debt {
+    _id
+    value
+    cashback
+    tax {
+      value
+    }
+  }
+`;
+
 const QrCode = ({
   variables,
   setError,
+  installment,
+  userId,
 }: {
-  variables: Variables;
+  variables: QrCode_DebtFragmentType;
   setError: React.Dispatch<any>;
+  installment: number;
+  userId: string;
 }) => {
   const [commit] = useMutation<QrCodeMutationType>(QrCodeMutation);
   const [charge, setCharge] = useState<Charge | null>(null);
-
   const navigate = useNavigate();
+
+  const fragmentData = useFragment<QrCode_DebtFragmentType>(
+    QrCodeFragment,
+    variables
+  );
+
+  const debtId = fragmentData?._id;
+  const tax = fragmentData.tax?.value || 0;
+  const cashback = fragmentData.cashback || 0;
+  const value = fragmentData.value || 0;
+
+  const { valueOfInstallments, totalMoreTax } = useMemo(
+    () => calculatingInstallmentValue(value, tax, installment),
+    [value, tax, installment]
+  );
+
   const data = new Date();
   const currentMonth = data.getMonth();
   data.setDate(5);
   const handlePay = (charge: Charge) => {
     // I don't know with the "charge" information it would be used so it is unused, but it is necessary for the payment function
-    const installments = Array.from({ length: variables?.installment + 1 }).map(
+    const installments = Array.from({ length: installment + 1 }).map(
       (_, idx: number) => {
         const expires = data.setMonth(currentMonth + (idx + 1));
 
         return {
           status: idx === 0 ? "paid" : "onTime",
           idMonth: idx + 1,
-          value: variables?.valueOfInstallments,
+          value: valueOfInstallments,
           expires: String(new Date(expires)),
         };
       }
@@ -69,25 +94,22 @@ const QrCode = ({
     commit({
       variables: {
         inputDebt: {
-          _id: variables?.debtId,
-          totalValue: variables?.totalMoreTax,
+          _id: debtId,
+          totalValue: totalMoreTax,
           installments: installments,
-          user: variables?.userId,
+          user: userId,
         },
         inputUser: {
-          _id: variables?.userId,
-          debts: variables?.debtId,
-          cashDesk:
-            variables.installment == 0
-              ? variables?.totalMoreTax * variables?.cashback
-              : 0,
+          _id: userId,
+          debts: debtId,
+          cashDesk: installment == 0 ? totalMoreTax * cashback : 0,
         },
       },
       onCompleted() {
         navigate(
-          variables?.installment === 0
+          installment === 0
             ? "/confirmed"
-            : `/card?userId=${variables?.userId}&debtId=${variables?.debtId}`
+            : `/card?userId=${userId}&debtId=${debtId}`
         );
       },
       onError(error) {
@@ -103,8 +125,8 @@ const QrCode = ({
 
   const newCharge = () => {
     const { charge, error } = chargeCreate({
-      correlationID: variables?.debtId,
-      value: variables?.valueOfInstallments,
+      correlationID: debtId,
+      value: valueOfInstallments,
       comment: "Donate",
     });
 
@@ -139,7 +161,6 @@ const QrCode = ({
 
     Clipboard.setStringAsync(text);
   };
-
   return (
     <View style={[styles.center, styles.fullWidth]}>
       <View
@@ -171,7 +192,6 @@ const QrCode = ({
         ]}
         onPress={() => {
           handlePay(charge);
-          copyToClipboard();
         }}
       >
         <Text
