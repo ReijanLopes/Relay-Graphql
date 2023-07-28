@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ScrollView, SafeAreaView, Text, View } from "react-native";
 import { useLazyLoadQuery, graphql } from "react-relay";
 
@@ -9,7 +9,7 @@ import Footer from "./components/Footer";
 import Info from "./Info";
 import QrCode from "./QrCode";
 
-import { formatNumberInString } from "./utils";
+import { calculatingInstallmentValue } from "./utils";
 
 import styles from "./styles";
 
@@ -22,10 +22,10 @@ const PaymentPixQuery = graphql`
     }
     getDebt(_id: $debtId) {
       value
-      cashback
+      ...QrCode_DebtFragment
+      ...Info_DebtFragment
       tax {
         value
-        cet
       }
     }
   }
@@ -45,11 +45,11 @@ export default function PaymentPix() {
   const name = query?.getUser?.name;
   const value = query.getDebt?.value || 0;
   const tax = query?.getDebt?.tax?.value || 0;
-  const cet = query?.getDebt?.tax?.cet || 0;
-  const cashback = query?.getDebt?.cashback || 0;
-  const totalMoreTax = Math.round(value * (1 + tax / 100) ** installment);
-  const valueOfInstallments = Math.round(totalMoreTax / (installment + 1));
-  const valueOfInstallmentsString = formatNumberInString(valueOfInstallments);
+
+  const { valueOfInstallmentsString } = useMemo(
+    () => calculatingInstallmentValue(value, tax, installment),
+    [value, tax, installment]
+  );
 
   return (
     <ScrollView
@@ -88,16 +88,10 @@ export default function PaymentPix() {
         </View>
 
         <QrCode
-          variables={{
-            tax,
-            userId,
-            debtId,
-            installment,
-            totalMoreTax,
-            valueOfInstallments,
-            cashback,
-          }}
+          variables={query?.getDebt}
+          installment={installment}
           setError={setQrCodeError}
+          userId={userId}
         />
         {qrCodeError ? (
           <View style={[styles.center, styles.fullWidth]}>
@@ -107,14 +101,7 @@ export default function PaymentPix() {
           </View>
         ) : null}
 
-        <Info
-          debtId={debtId}
-          cet={cet}
-          installmentLength={installment + 1}
-          totalMoreTax={formatNumberInString(totalMoreTax)}
-          valueOfInstallments={valueOfInstallmentsString}
-        />
-
+        <Info data={query?.getDebt} installmentLength={installment + 1} />
         <Footer />
       </SafeAreaView>
     </ScrollView>

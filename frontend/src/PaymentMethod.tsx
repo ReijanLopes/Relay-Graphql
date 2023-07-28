@@ -14,7 +14,7 @@ import { Octicons } from "@expo/vector-icons";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 
-import { useDebounce, formatNumberInString } from "./utils";
+import { useDebounce, formatNumberInString, calculatedTotal } from "./utils";
 
 import styles from "./styles";
 
@@ -245,9 +245,7 @@ export default function PaymentMethod() {
 
       const { totalString, quantityInstallments, refund } = useMemo(() => {
         const total =
-          installments === 1
-            ? value
-            : Math.round(value * (1 + tax / 100) ** idx);
+          installments === 1 ? value : calculatedTotal(value, tax, idx);
 
         const totalString =
           installments != 1 ? formatNumberInString(total) : undefined;

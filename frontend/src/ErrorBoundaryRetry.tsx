@@ -32,12 +32,7 @@ class ErrorBoundaryRetry extends React.Component<Props, State> {
     if (error != null) {
       return (
         <View
-          style={[
-            styles.marginTopBottom_20,
-            styles.fullWidth,
-            styles.flex_1,
-            // { height: height },
-          ]}
+          style={[styles.marginTopBottom_20, styles.fullWidth, styles.flex_1]}
         >
           <Header />
 

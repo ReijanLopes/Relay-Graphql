@@ -1,11 +1,16 @@
 import { useMemo, useCallback } from "react";
 import { View, Text } from "react-native";
 import { Octicons } from "@expo/vector-icons";
+import { graphql } from "relay-runtime";
 
 import ShowMore from "./components/ShowMore";
 import Line from "./components/Line";
 
 import styles from "./styles";
+import { useFragment } from "react-relay";
+
+import { Info_DebtFragment$key } from "./__generated__/Info_DebtFragment.graphql";
+import { calculatingInstallmentValue, formatNumberInString } from "./utils";
 
 const textInstallments = ["entrada no Pix", "no cartão"];
 
@@ -60,25 +65,47 @@ const Steps = ({
   );
 };
 
+const QrCodeFragment = graphql`
+  fragment Info_DebtFragment on Debt {
+    _id
+    value
+    tax {
+      value
+      cet
+    }
+  }
+`;
+
 export default function Info({
-  debtId,
-  cet,
+  data,
   installmentLength,
-  totalMoreTax,
-  valueOfInstallments,
   installmentPayment = [{ value: null, label: "ontime", status: null }],
 }: {
-  debtId: string | null;
-  cet: number;
+  data: Info_DebtFragment$key;
   installmentLength: number;
-  totalMoreTax: string | number;
-  valueOfInstallments: string;
+
   installmentPayment?: Array<{
     value: string | null;
     label: string;
     status: string | null;
   }>;
 }) {
+  const fragmentData = useFragment<Info_DebtFragment$key>(QrCodeFragment, data);
+
+  const id = fragmentData?._id;
+  const cet = fragmentData?.tax?.cet;
+  const tax = fragmentData?.tax?.value || 0;
+  const value = fragmentData?.value || 0;
+
+  const { totalMoreTax, valueOfInstallmentsString } = useMemo(() => {
+    const { totalMoreTax, valueOfInstallmentsString } =
+      calculatingInstallmentValue(value, tax, installmentLength);
+    return {
+      totalMoreTax: formatNumberInString(totalMoreTax),
+      valueOfInstallmentsString,
+    };
+  }, []);
+
   const select = useMemo(() => {
     return installmentPayment?.[0].label
       ? installmentPayment?.find(({ status }) => status !== "paid")
@@ -97,11 +124,11 @@ export default function Info({
           idx={idx}
           completed={completed}
           selected={completed || selected}
-          valueOfInstallments={valueOfInstallments}
+          valueOfInstallments={valueOfInstallmentsString}
         />
       );
     },
-    [textInstallments, valueOfInstallments]
+    [textInstallments, valueOfInstallmentsString]
   );
 
   return (
@@ -143,7 +170,7 @@ export default function Info({
         <Text style={[styles.fontSize_12, styles.text_gray]}>
           Identificador:
         </Text>
-        <Text style={[styles.fontSize_12, styles.bold]}>{debtId}</Text>
+        <Text style={[styles.fontSize_12, styles.bold]}>{id}</Text>
       </View>
     </View>
   );

@@ -9,9 +9,8 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 web-build/
-./src/graphql
-./src/__generated__
 .env
+
 
 # macOS
 .DS_Store

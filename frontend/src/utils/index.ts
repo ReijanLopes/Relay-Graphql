@@ -89,3 +89,23 @@ export const formatExpiringInDate = (expiration: number) => {
 
   return `${formatMonth}/${year}`;
 };
+
+export const calculatedTotal = (
+  value: number,
+  tax: number,
+  installment: number
+) => {
+  return Math.round(value * (1 + tax / 100) ** installment);
+};
+
+export const calculatingInstallmentValue = (
+  value: number,
+  tax: number,
+  installment: number
+) => {
+  const totalMoreTax = calculatedTotal(value, tax, installment);
+  const valueOfInstallments = Math.round(totalMoreTax / (installment + 1));
+  const valueOfInstallmentsString = formatNumberInString(valueOfInstallments);
+
+  return { totalMoreTax, valueOfInstallments, valueOfInstallmentsString };
+};

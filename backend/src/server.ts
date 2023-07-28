@@ -22,7 +22,7 @@ import { schema } from "./graphql/index";
 import "dotenv/config";
 
 const mongoDB = process.env.MONGODB_CONNECT as string;
-const port = process.env.PORT;
+const port = process.env.PORT || 4005;
 
 const app = new Koa();
 app.use(convert(koaCors()));

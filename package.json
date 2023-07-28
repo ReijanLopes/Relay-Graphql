@@ -1,0 +1,15 @@
+{
+  "name": "woovi",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:ReijanLopes/woovi.git",
+  "author": "Reijan Lopes <reijan.lj@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "ios": "concurrently \"cd backend && yarn start\"   \"cd frontend && sleep 10 && yarn ios-relay\"",
+    "android": "concurrently \"cd backend && yarn start\" \"cd frontend && sleep 5 && yarn android-relay\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
