@@ -8,8 +8,6 @@ Nota 4: Não consigo entender, o model "Tax", foi bem feito e funcionava, agora 
 
 Nota 5: O cashback padrão será de 1% e a taxa será de 32,788%
 
-Nota 6: Não da pra deixar o schema.graphql(frontend), sendo gerado automaticamente, por causa do fragment
-
 Para iniciar o projeto e necessario que um servidor Redis esteja ativo, por minha vez eu indico o [docker](https://www.docker.com/) para isso.
 
 Iniciar servidor Redis:
