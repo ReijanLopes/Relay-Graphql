@@ -191,7 +191,7 @@ const QrCode = ({
           styles.marginTop_10,
         ]}
         onPress={() => {
-          handlePay(charge);
+          copyToClipboard();
         }}
       >
         <Text

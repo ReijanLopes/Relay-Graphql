@@ -8,6 +8,8 @@ Nota 4: Não consigo entender, o model "Tax" foi bem feito e funcionava, agora e
 
 Nota 5: O cashback padrão será de 1%, a taxa será de 32,788%.
 
+Nota 6: Os tipos do backend e o schema.graphql são gerados automaticamente pela função automaticGenerators.
+
 Para iniciar o projeto, é necessário que um servidor Redis esteja ativo, por minha vez eu indico o [docker](https://www.docker.com/) para isso.
 
 Iniciar servidor Redis:
@@ -51,3 +53,13 @@ or
 yarn ios
 yarn android
 ```
+
+Essas são as telas principais:
+
+<iframe width="560" height="315" src="https://www.youtube.com/shorts/cq38YPCmSVI" frameborder="0"></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/shorts/ltjY2P4Dv_Y" frameborder="0"></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/shorts/dqoapEH7KeY" frameborder="0"></iframe>
+
+Telas extras:
+![Tela de erro](./assets/error.png)
+![Tela de compra completa](./assets/completed.png)
