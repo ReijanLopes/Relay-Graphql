@@ -55,11 +55,10 @@ yarn android
 ```
 
 Essas são as telas principais:
-
-<iframe width="560" height="315" src="https://www.youtube.com/shorts/cq38YPCmSVI" frameborder="0"></iframe>
-<iframe width="560" height="315" src="https://www.youtube.com/shorts/ltjY2P4Dv_Y" frameborder="0"></iframe>
-<iframe width="560" height="315" src="https://www.youtube.com/shorts/dqoapEH7KeY" frameborder="0"></iframe>
+![Vídeo](https://www.youtube.com/shorts/cq38YPCmSVI){: width="200px" height="600px" }
+![Vídeo](https://www.youtube.com/shorts/ltjY2P4Dv_Y){: width="200px" height="600px" }
+![Vídeo](https://www.youtube.com/shorts/dqoapEH7KeY){: width="200px" height="600px" }
 
 Telas extras:
-![Tela de erro](./assets/error.png)
-![Tela de compra completa](./assets/completed.png)
+![Tela de erro](./assets/error.png){: width="200px" height="600px" }
+![Tela de compra completa](./assets/completed.png){: width="200px" height="600px" }
