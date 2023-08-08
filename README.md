@@ -55,9 +55,9 @@ yarn android
 ```
 
 Essas são as telas principais:
-![Vídeo](https://www.youtube.com/shorts/cq38YPCmSVI){:width="200px" height="600px" }
-![Vídeo](https://www.youtube.com/shorts/ltjY2P4Dv_Y){:width="200px" height="600px" }
-![Vídeo](https://www.youtube.com/shorts/dqoapEH7KeY){:width="200px" height="600px" }
+![method](https://github.com/ReijanLopes/woovi/assets/56601947/2708cb99-e148-471e-96d7-b60a12f3c924)
+![pix](https://github.com/ReijanLopes/woovi/assets/56601947/34cbc449-a0fb-40c5-8782-921e80ab79b3)
+![card](https://github.com/ReijanLopes/woovi/assets/56601947/1aed91a2-0623-4005-b679-e7e0bc77b440)
 
 Telas extras:
 ![Tela de erro](./assets/extras.png)
