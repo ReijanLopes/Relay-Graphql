@@ -55,9 +55,10 @@ yarn android
 ```
 
 Essas são as telas principais:
-![method](https://github.com/ReijanLopes/woovi/assets/56601947/2708cb99-e148-471e-96d7-b60a12f3c924)
-![pix](https://github.com/ReijanLopes/woovi/assets/56601947/34cbc449-a0fb-40c5-8782-921e80ab79b3)
-![card](https://github.com/ReijanLopes/woovi/assets/56601947/1aed91a2-0623-4005-b679-e7e0bc77b440)
+
+![method](https://github.com/ReijanLopes/woovi/assets/56601947/73a61abc-373a-4681-a928-1a59f7a6e57e)
+![pix](https://github.com/ReijanLopes/woovi/assets/56601947/50cd105b-31e3-459a-a95c-5152aedd7e38)
+![card](https://github.com/ReijanLopes/woovi/assets/56601947/237aedf0-871e-444c-bd62-b5be50e0f485)
 
 Telas extras:
 ![Tela de erro](./assets/extras.png)
