@@ -12,11 +12,13 @@ import { createClient } from "graphql-ws";
 import { Platform } from "react-native";
 
 const port = process.env.REACT_APP_API_PORT || 4005;
+const hostIos = process.env.HTTP_IOS;
+const hostAndroid = process.env.HTTP_ANDROID;
 
 const url =
   Platform.OS === "ios"
-    ? `ws://127.0.0.1:${port}/graphql`
-    : `ws://10.0.2.2:${port}/graphql`;
+    ? `ws://${hostIos}:${port}/graphql`
+    : `ws://${hostAndroid}:${port}/graphql`;
 
 const wsClient = createClient({
   url,
