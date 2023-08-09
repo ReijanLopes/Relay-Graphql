@@ -32,7 +32,7 @@ Para iniciar o servidor:
  cd backend && yarn start
 ```
 
-Para iniciar o frontend e necessario que o servidor backend esteja ativo.
+Para iniciar o frontend, é necessário que o servidor backend esteja ativo. Além disso, também é essencial que as variáveis de ambiente REACT_APP_API_PORT, HTTP_IOS e HTTP_ANDROID estejam configuradas.
 
 ```bash
 npm run ios-relay
