@@ -55,28 +55,42 @@ const PaymentCardQuery = graphql`
 `;
 
 const PaymentCardMutation = graphql`
-  mutation PaymentCardMutation($input: CardInput) {
-    mutationCard(input: $input) {
+  mutation PaymentCardMutation($inputCard: CardInput, $inputDebt: DebtInput) {
+    mutationCard(input: $inputCard) {
+      _id
+    }
+    mutationDebt(input: $inputDebt) {
       _id
     }
   }
 `;
 
-const textErrors = {
-  name: "Nome é necessário",
-  number: "Número do cartão é necessário",
-  cpf: "CPF é necessário",
-  expiration: "Data de expiração é necessário",
-  cvv: "Código de segurança é necessário",
+const validate = {
+  name: {
+    error: "Nome é necessário",
+    validate: /^[A-Za-z ]+$/,
+  },
+  number: {
+    error: "Número do cartão é necessário",
+    validate: /^\d{4}\.\d{4}\.\d{4}\.\d{4}$/,
+  },
+  cpf: {
+    error: "CPF é necessário",
+    validate: /^\d{3}\.\d{3}\.\d{3}-\d{2}$/,
+  },
+  expiration: {
+    error: "Data de expiração é necessário",
+    validate: /^\d{2}\/\d{2}$/,
+  },
+  cvv: { error: "Código de segurança é necessário", validate: /^\d{3}$/ },
+  installment: {
+    error: "As parcelas que serão pagas nesse cartão são obrigatórias",
+    validate: /^.*$/,
+  },
 };
 
 type Error = {
   errorSubmit?: string;
-  name: string;
-  cpf: string;
-  number: string;
-  cvv: string;
-  expiration: string;
 };
 
 export default function PaymentCard() {
@@ -161,20 +175,33 @@ export default function PaymentCard() {
             installment: installment,
           }}
           validate={(values) => {
-            for (const key in values) {
-              if (!values?.[key]) {
-                setError((e) => ({ ...e, [key]: textErrors?.[key] }));
+            const errors = {};
+            const keys = Object.keys(validate);
+            keys.map((key) => {
+              const validating =
+                key != "installment"
+                  ? validate?.[key]?.validate?.test(values?.[key])
+                  : values?.[key].length;
+              if (!values?.[key] || !validating) {
+                errors[key] = validate?.[key]?.error;
               }
-            }
+            });
+
+            return errors;
           }}
-          onSubmit={({ installment, ...values }) => {
+          onSubmit={({ installment, cvv, ...values }) => {
             commit({
               variables: {
-                input: {
+                inputCard: {
                   ...values,
+                  cvv: Number(cvv),
                   _id: query?.getDebt?.card?._id,
                   user: query?.getDebt?.user?._id,
                   debts: query?.getDebt?._id,
+                },
+                inputDebt: {
+                  _id: query?.getDebt?._id,
+                  installments: installment,
                 },
               },
               onCompleted() {
@@ -186,7 +213,7 @@ export default function PaymentCard() {
             });
           }}
         >
-          {({ handleChange, handleBlur, handleSubmit, values }) => (
+          {({ handleChange, handleBlur, handleSubmit, values, errors }) => (
             <View style={[styles.gap_20, styles.fullWidth]}>
               <TextInput
                 value={values?.name}
@@ -194,7 +221,7 @@ export default function PaymentCard() {
                 label="Nome completo"
                 onChange={handleChange("name")}
                 onBlur={handleBlur("name")}
-                error={error?.name}
+                error={errors?.name}
               />
               <TextInput
                 value={values?.cpf}
@@ -203,7 +230,7 @@ export default function PaymentCard() {
                 onChange={handleChange("cpf")}
                 onBlur={handleBlur("cpf")}
                 mask={maskCPF}
-                error={error?.cpf}
+                error={errors?.cpf}
               />
               <TextInput
                 value={values?.number}
@@ -212,7 +239,7 @@ export default function PaymentCard() {
                 onChange={handleChange("number")}
                 onBlur={handleBlur("number")}
                 mask={maskCardNumber}
-                error={error?.number}
+                error={errors?.number}
               />
               <View
                 style={[
@@ -230,7 +257,7 @@ export default function PaymentCard() {
                   onChange={handleChange("expiration")}
                   onBlur={handleBlur("expiration")}
                   mask={maskValidate}
-                  error={error?.expiration}
+                  error={errors?.expiration}
                 />
                 <TextInput
                   width="45%"
@@ -240,7 +267,7 @@ export default function PaymentCard() {
                   onChange={handleChange("cvv")}
                   onBlur={handleBlur("cvv")}
                   mask={maskCVV}
-                  error={error?.cvv}
+                  error={errors?.cvv}
                 />
               </View>
 
@@ -249,6 +276,7 @@ export default function PaymentCard() {
                 label="Parcelas"
                 onChange={handleChange("installment")}
                 onBlur={handleBlur("installment")}
+                error={errors?.installment}
               />
               <Pressable
                 style={[

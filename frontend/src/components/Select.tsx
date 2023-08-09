@@ -20,12 +20,14 @@ export default function Select({
   options,
   label,
   defaultValue,
+  error,
   placeholder = "Selecione uma opção",
   onChange,
   onBlur,
 }: {
   defaultValue?: option;
   options: Array<option>;
+  error?: string;
   label: string;
   placeholder?: string;
   onChange?: (e: string | React.ChangeEvent<any>) => void;
@@ -118,6 +120,11 @@ export default function Select({
         onBlur={onBlur}
         style={styles.display_none}
       />
+      {error ? (
+        <View>
+          <Text style={[styles.color_red, styles.fontSize_10]}>{error}</Text>
+        </View>
+      ) : null}
     </View>
   );
 }

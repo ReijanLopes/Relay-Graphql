@@ -8,6 +8,8 @@ Nota 4: Não consigo entender, o model "Tax" foi bem feito e funcionava, agora e
 
 Nota 5: O cashback padrão será de 1%, a taxa será de 32,788%.
 
+Nota 6: Os tipos do backend e o schema.graphql são gerados automaticamente pela função automaticGenerators.
+
 Para iniciar o projeto, é necessário que um servidor Redis esteja ativo, por minha vez eu indico o [docker](https://www.docker.com/) para isso.
 
 Iniciar servidor Redis:
@@ -51,3 +53,12 @@ or
 yarn ios
 yarn android
 ```
+
+Essas são as telas principais:
+
+![method](https://github.com/ReijanLopes/woovi/assets/56601947/73a61abc-373a-4681-a928-1a59f7a6e57e)
+![pix](https://github.com/ReijanLopes/woovi/assets/56601947/50cd105b-31e3-459a-a95c-5152aedd7e38)
+![card](https://github.com/ReijanLopes/woovi/assets/56601947/237aedf0-871e-444c-bd62-b5be50e0f485)
+
+Telas extras:
+![Tela de erro](./assets/extras.png)

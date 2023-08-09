@@ -76,7 +76,7 @@ const QrCode = ({
   const data = new Date();
   const currentMonth = data.getMonth();
   data.setDate(5);
-  const handlePay = (charge: Charge) => {
+  const handlePay = () => {
     // I don't know with the "charge" information it would be used so it is unused, but it is necessary for the payment function
     const installments = Array.from({ length: installment + 1 }).map(
       (_, idx: number) => {
@@ -171,7 +171,7 @@ const QrCode = ({
           styles.borderWidth_2,
         ]}
       >
-        {charge ? (
+        {charge?.brcode ? (
           <QRCode size={250} value={charge?.brcode} />
         ) : (
           <View style={styles.padding_30}>
@@ -191,7 +191,7 @@ const QrCode = ({
           styles.marginTop_10,
         ]}
         onPress={() => {
-          handlePay(charge);
+          copyToClipboard();
         }}
       >
         <Text

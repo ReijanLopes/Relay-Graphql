@@ -1,6 +1,6 @@
 import user from "../../models/user";
-import card from "../../models/card";
-import debt from "../../models/debt";
+import cardModel from "../../models/card";
+import debtModel from "../../models/debt";
 
 import { GraphQLError } from "graphql";
 
@@ -52,17 +52,24 @@ export const listUser = async (
 };
 
 export const mutationUser = async (_: any, { input }: { input: UserInput }) => {
-  const { _id, cashDesk, ...res } = input;
+  const { _id, cashDesk, cards, debts, ...res } = input;
   if (!_id) {
     try {
-      const createUser = await user.create(res);
+      const createUser = await user.create({ ...res, cards, debts });
+      await cardModel.updateOne({ _id: cards }, { user: createUser?._id });
+      await debtModel.updateOne({ _id: debts }, { user: createUser?._id });
       return createUser.save();
     } catch (error) {
       throw new GraphQLError(error?.message);
     }
   } else {
     try {
-      await user.updateOne({ _id }, { $inc: { cashDesk: cashDesk }, ...res });
+      await user.updateOne(
+        { _id },
+        { $inc: { cashDesk: cashDesk }, ...res, cards, debts }
+      );
+      await cardModel.updateOne({ _id: cards }, { user: _id });
+      await debtModel.updateOne({ _id: debts }, { user: _id });
     } catch (error) {
       throw new GraphQLError(error?.message);
     }
@@ -74,8 +81,8 @@ export const deleteUser = async (_: any, { _id }: { _id: string }) => {
   try {
     const userDeleted = await user.deleteOne({ _id }).lean();
     if (userDeleted?.deletedCount === 1) {
-      await card.deleteMany({ user: _id });
-      await debt.deleteMany({ user: _id });
+      await cardModel.deleteMany({ user: _id });
+      await debtModel.deleteMany({ user: _id });
       return { message: true };
     } else {
       return { message: false };
