@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ScrollView, SafeAreaView, View, Text, Pressable } from "react-native";
 import { useLazyLoadQuery, graphql, useMutation } from "react-relay";
 import { Formik } from "formik";
@@ -21,7 +21,11 @@ import {
 import styles from "./styles";
 
 import type { PaymentCardQuery as PaymentCardQueryType } from "./__generated__/PaymentCardQuery.graphql";
-import type { PaymentCardMutation as PaymentCardMutationType } from "./__generated__/PaymentCardMutation.graphql";
+import type {
+  PaymentCardMutation as PaymentCardMutationType,
+  InstallmentsInput,
+  CardInput,
+} from "./__generated__/PaymentCardMutation.graphql";
 
 const PaymentCardQuery = graphql`
   query PaymentCardQuery($debtId: ID!) {
@@ -61,6 +65,12 @@ const PaymentCardMutation = graphql`
     }
     mutationDebt(input: $inputDebt) {
       _id
+      installments {
+        status
+        idMonth
+        value
+        expires
+      }
     }
   }
 `;
@@ -89,16 +99,75 @@ const validate = {
   },
 };
 
-type Error = {
-  errorSubmit?: string;
+const createInstallment = (
+  installments: InstallmentsInput[],
+  selectedPlots: number
+) => {
+  return installments.map(({ status, ...res }) => {
+    if (status != "paid" && selectedPlots > 0) {
+      selectedPlots = selectedPlots - 1;
+      return { ...res, status: "paid" };
+    }
+    return { ...res, status };
+  });
+};
+
+type Key = "name" | "number" | "cpf" | "expiration" | "cvv" | "installments";
+
+type Values = CardInput & {
+  installments?: ReadonlyArray<InstallmentsInput | null> | null;
+};
+
+const validationErrors = (values: Values) => {
+  const errors = {};
+  const keys = Object.keys(validate);
+  keys.map((key: Key) => {
+    const validating =
+      key != "installments"
+        ? validate?.[key]?.validate?.test(values?.[key])
+        : values?.[key].length;
+    if (!values?.[key] || !validating) {
+      errors[key] = validate?.[key]?.error;
+    }
+  });
+
+  return errors;
+};
+
+const createOptions = (installments: InstallmentsInput[]) => {
+  return (
+    installments.map(({ idMonth, value, status }) => ({
+      value: String(idMonth),
+      label: `${idMonth}x ${formatNumberInString(value || 0)}`,
+      status,
+    })) || []
+  );
+};
+
+const formattingPlots = (
+  installments: InstallmentsInput[],
+  filter?: string
+) => {
+  if (filter) {
+    const installmentsFilter = installments.filter(
+      (item) => item.status !== filter
+    );
+    const unpaid = installments?.length - installmentsFilter?.length;
+
+    const res = installmentsFilter.map((item) => {
+      const { idMonth, ...res } = item;
+      return { ...res, idMonth: idMonth ? idMonth - unpaid : 0 };
+    });
+    return createOptions(res);
+  }
+
+  return createOptions(installments);
 };
 
 export default function PaymentCard() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const debtId = params.get("debtId");
-
-  const [error, setError] = useState<Error | null>(null);
+  const debtId = String(params.get("debtId"));
 
   const query = useLazyLoadQuery<PaymentCardQueryType>(PaymentCardQuery, {
     debtId,
@@ -106,115 +175,150 @@ export default function PaymentCard() {
   const [commit, isInFlight] =
     useMutation<PaymentCardMutationType>(PaymentCardMutation);
 
-  const installment = query?.getDebt?.installments || [];
-
-  const { installmentFilter, installmentPayment } = useMemo(() => {
-    const installmentPayment =
-      installment.map(({ idMonth, value, status }) => ({
-        value: String(idMonth),
-        label: `${idMonth}x ${formatNumberInString(value)}`,
-        status,
-      })) || [];
-
-    const installmentFilter = installmentPayment.filter(
-      ({ status }: { status: string }) => (status != "Paid" ? status : null)
-    );
-
-    return { installmentFilter, installmentPayment };
-  }, [installment]);
+  const [errorSubmit, setErrorSubmit] = useState<Error | null>(null);
+  const [installments, setInstallments] = useState(
+    query?.getDebt?.installments || []
+  );
 
   const name = query?.getDebt?.user?.name;
-  const expiration = query?.getDebt?.card?.expiration;
-  const portion = installment?.length || 0;
+
+  const portion = installments?.length || 0;
+
+  const cardLength = query?.getDebt?.card
+    ? query?.getDebt?.card?.length - 1
+    : 0;
+  const cpf = query?.getDebt?.card?.[cardLength]?.cpf;
+  const cardNumber = query?.getDebt?.card?.[cardLength]?.number;
+  const cvv = query?.getDebt?.card?.[cardLength]?.cvv;
+  const expiration = query?.getDebt?.card?.[cardLength]?.expiration;
+  const idCard = query?.getDebt?.card?.[cardLength]?._id;
+
+  const installmentFilter = formattingPlots(installments, "paid");
+  const installmentPayment = formattingPlots(installments);
 
   const { title, expirationString } = useMemo(() => {
     const expirationString = formatExpiringInDate(Number(expiration));
     const title =
       portion > 1
-        ? `pague a parcela ${portion}x no cartão`
-        : `pague o restante em ${portion}x no cartão`;
+        ? `pague a parcela ${portion - 1}x no cartão`
+        : `pague o restante em ${portion - 1}x no cartão`;
 
     return { title, expirationString };
   }, [portion, expiration]);
 
+  const {
+    main,
+    container,
+    containerTitle,
+    titleStyle,
+    containerCvvAndExpiration,
+    containerInputs,
+    containerError,
+    buttonSubmit,
+  } = useMemo(
+    () => ({
+      main: [styles.fullWidth, styles.padding_10, styles.marginTopBottom_20],
+      container: [
+        styles.bgColor_white,
+        styles.flex_1,
+        styles.fullWidth,
+        styles.alignItems_center,
+      ],
+      containerTitle: [
+        styles.marginTopBottom_20,
+        styles.fullWidth,
+        styles.center,
+      ],
+      titleStyle: [
+        styles.bold,
+        styles.title,
+        styles.textCenter,
+        styles.alignItems_center,
+      ],
+      containerCvvAndExpiration: [
+        styles.gap_20,
+        styles.justifyContent_spaceBetween,
+        styles.fullWidth,
+        styles.flexDirection_row,
+      ],
+      containerInputs: [styles.gap_20, styles.fullWidth],
+      containerError: [styles.center, styles.fullWidth],
+      buttonSubmit: [
+        styles.bgColor_darkBlue,
+        styles.center,
+        styles.buttonFormCard,
+      ],
+    }),
+    []
+  );
+
+  const transformInstallment = useCallback(
+    (installment: number) => {
+      const install = createInstallment(installments, installment);
+      const HowManyInstallmentsWerePaid = install.filter(
+        (item) => item.status === "onTime"
+      ).length;
+      return { install, HowManyInstallmentsWerePaid };
+    },
+    [installments]
+  );
+
   return (
-    <ScrollView
-      style={[styles.fullWidth, styles.padding_10, styles.marginTopBottom_20]}
-    >
-      <SafeAreaView
-        style={[
-          styles.bgColor_white,
-          styles.flex_1,
-          styles.fullWidth,
-          styles.alignItems_center,
-        ]}
-      >
+    <ScrollView style={main}>
+      <SafeAreaView style={container}>
         <Header />
-        <View
-          style={[styles.marginTopBottom_20, styles.fullWidth, styles.center]}
-        >
-          <Text
-            style={[
-              styles.bold,
-              styles.title,
-              styles.textCenter,
-              styles.alignItems_center,
-            ]}
-          >
+        <View style={containerTitle}>
+          <Text style={titleStyle}>
             {name}, {title}
           </Text>
         </View>
 
         <Formik
           initialValues={{
-            name: query?.getDebt?.card?.name,
-            cpf: query?.getDebt?.card?.cpf,
-            number: query?.getDebt?.card?.number,
+            name,
+            cpf,
+            number: cardNumber,
             expiration: expirationString,
-            cvv: query?.getDebt?.card?.cvv,
-            installment: installment,
+            cvv: cvv,
+            installment: installments?.length,
           }}
           validate={(values) => {
-            const errors = {};
-            const keys = Object.keys(validate);
-            keys.map((key) => {
-              const validating =
-                key != "installment"
-                  ? validate?.[key]?.validate?.test(values?.[key])
-                  : values?.[key].length;
-              if (!values?.[key] || !validating) {
-                errors[key] = validate?.[key]?.error;
-              }
-            });
+            const errors = validationErrors(values);
 
             return errors;
           }}
-          onSubmit={({ installment, cvv, ...values }) => {
+          onSubmit={({ cvv, installment, number, ...values }) => {
+            const { HowManyInstallmentsWerePaid, install } =
+              transformInstallment(installment);
             commit({
               variables: {
                 inputCard: {
                   ...values,
                   cvv: Number(cvv),
-                  _id: query?.getDebt?.card?._id,
+                  _id: cardNumber == number ? idCard : null,
                   user: query?.getDebt?.user?._id,
                   debts: query?.getDebt?._id,
                 },
                 inputDebt: {
                   _id: query?.getDebt?._id,
-                  installments: installment,
+                  installments: install,
+                  card: cardNumber == number ? idCard : null,
                 },
               },
-              onCompleted() {
-                navigate("/confirmed");
+              onCompleted(item) {
+                setInstallments(item?.mutationDebt?.installments || []);
+                HowManyInstallmentsWerePaid <= 0
+                  ? navigate("/confirmed")
+                  : null;
               },
               onError(error) {
-                setError((e) => ({ ...e, errorSubmit: error }));
+                setErrorSubmit(error);
               },
             });
           }}
         >
           {({ handleChange, handleBlur, handleSubmit, values, errors }) => (
-            <View style={[styles.gap_20, styles.fullWidth]}>
+            <View style={containerInputs}>
               <TextInput
                 value={values?.name}
                 placeholder="Digite o nome completo"
@@ -241,14 +345,7 @@ export default function PaymentCard() {
                 mask={maskCardNumber}
                 error={errors?.number}
               />
-              <View
-                style={[
-                  styles.gap_20,
-                  styles.justifyContent_spaceBetween,
-                  styles.fullWidth,
-                  styles.flexDirection_row,
-                ]}
-              >
+              <View style={containerCvvAndExpiration}>
                 <TextInput
                   width="45%"
                   value={values?.expiration}
@@ -273,17 +370,16 @@ export default function PaymentCard() {
 
               <Select
                 options={installmentFilter}
+                defaultValue={
+                  installmentFilter?.[installmentFilter?.length - 1]
+                }
                 label="Parcelas"
                 onChange={handleChange("installment")}
                 onBlur={handleBlur("installment")}
                 error={errors?.installment}
               />
               <Pressable
-                style={[
-                  styles.bgColor_darkBlue,
-                  styles.center,
-                  styles.buttonFormCard,
-                ]}
+                style={buttonSubmit}
                 onPress={() => {
                   handleSubmit();
                 }}
@@ -295,8 +391,8 @@ export default function PaymentCard() {
             </View>
           )}
         </Formik>
-        {error?.errorSubmit ? (
-          <View style={[styles.center, styles.fullWidth]}>
+        {errorSubmit ? (
+          <View style={containerError}>
             <Text style={styles.color_red}>Houve algum erro</Text>
           </View>
         ) : null}
@@ -304,7 +400,7 @@ export default function PaymentCard() {
         <Info
           data={query?.getDebt}
           installmentPayment={installmentPayment}
-          installmentLength={installment.length}
+          installmentLength={installments.length}
         />
         <Footer />
       </SafeAreaView>

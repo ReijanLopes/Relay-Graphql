@@ -1,11 +1,5 @@
 import { useRef, useEffect, useMemo } from "react";
-import {
-  Dimensions,
-  View,
-  TouchableOpacity,
-  Text,
-  Animated,
-} from "react-native";
+import { View, Text, Animated } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 
 import { useDebounce } from "./utils";
@@ -14,9 +8,6 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 
 import styles from "./styles";
-
-const screenHeight = Dimensions.get("window").height;
-const height = screenHeight - 140;
 
 export default function PaymentConfirmed() {
   const animated = useRef(new Animated.Value(0)).current;
@@ -49,23 +40,25 @@ export default function PaymentConfirmed() {
     [animated]
   );
 
+  const { containerAnimation, circle, text } = useMemo(
+    () => ({
+      containerAnimation: [styles.center, styles.flex_1],
+      circle: [styles.padding_20, styles.validatePayment],
+      text: [styles.marginTop_10, styles.bold, styles.color_green],
+    }),
+    []
+  );
+
   return (
-    <View>
+    <View style={styles.flex_1}>
       <Header />
-      <View style={[styles.center, { height: height }]}>
+      <View style={containerAnimation}>
         <Animated.View style={animatedIcon}>
-          <View
-            style={[
-              styles.padding_20,
-              { backgroundColor: "#02d69d", borderRadius: 60 },
-            ]}
-          >
+          <View style={circle}>
             <AntDesign name="check" size={65} color="#FFFF" />
           </View>
         </Animated.View>
-        <Text style={[styles.marginTop_10, styles.bold, { color: "#02d69d" }]}>
-          Compra realizada com sucesso
-        </Text>
+        <Text style={text}>Compra realizada com sucesso</Text>
       </View>
 
       <Footer />

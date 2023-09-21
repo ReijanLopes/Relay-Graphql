@@ -33,8 +33,8 @@ const PaymentPixQuery = graphql`
 
 export default function PaymentPix() {
   const [params] = useSearchParams();
-  const userId = params.get("userId") as string;
-  const debtId = params.get("debtId") as string;
+  const userId = String(params.get("userId"));
+  const debtId = String(params.get("debtId"));
   const installment = Number(params.get("installment"));
   const query = useLazyLoadQuery<PaymentPixQueryType>(PaymentPixQuery, {
     userId,
@@ -51,40 +51,51 @@ export default function PaymentPix() {
     [value, tax, installment]
   );
 
+  const {
+    container,
+    areaView,
+    nameHeader,
+    pixValue,
+    containerError,
+    textError,
+  } = useMemo(
+    () => ({
+      container: [
+        styles.fullWidth,
+        styles.padding_10,
+        styles.marginTopBottom_20,
+      ],
+      areaView: [
+        styles.flex_1,
+        styles.bgColor_white,
+        styles.fullWidth,
+        styles.alignItems_center,
+      ],
+      nameHeader: [
+        styles.bold,
+        styles.title,
+        styles.textCenter,
+        styles.alignItems_center,
+      ],
+      pixValue: [
+        styles.bold,
+        styles.title,
+        styles.textCenter,
+        styles.alignItems_center,
+      ],
+      containerError: [styles.center, styles.fullWidth],
+      textError: [styles.color_red, styles.fontSize_10],
+    }),
+    []
+  );
+
   return (
-    <ScrollView
-      style={[styles.fullWidth, styles.padding_10, styles.marginTopBottom_20]}
-    >
-      <SafeAreaView
-        style={[
-          styles.flex_1,
-          styles.bgColor_white,
-          styles.fullWidth,
-          styles.alignItems_center,
-        ]}
-      >
+    <ScrollView style={container}>
+      <SafeAreaView style={areaView}>
         <Header />
         <View style={styles.marginTopBottom_20}>
-          <Text
-            style={[
-              styles.bold,
-              styles.title,
-              styles.textCenter,
-              styles.alignItems_center,
-            ]}
-          >
-            {name}, pague a entrada de
-          </Text>
-          <Text
-            style={[
-              styles.bold,
-              styles.title,
-              styles.textCenter,
-              styles.alignItems_center,
-            ]}
-          >
-            R$ {valueOfInstallmentsString} pelo Pix
-          </Text>
+          <Text style={nameHeader}>{name}, pague a entrada de</Text>
+          <Text style={pixValue}>R$ {valueOfInstallmentsString} pelo Pix</Text>
         </View>
 
         <QrCode
@@ -94,14 +105,12 @@ export default function PaymentPix() {
           userId={userId}
         />
         {qrCodeError ? (
-          <View style={[styles.center, styles.fullWidth]}>
-            <Text style={[styles.color_red, styles.fontSize_10]}>
-              Ouve algum erro na criação do QrCode
-            </Text>
+          <View style={containerError}>
+            <Text style={textError}>Ouve algum erro na criação do QrCode</Text>
           </View>
         ) : null}
 
-        <Info data={query?.getDebt} installmentLength={installment + 1} />
+        <Info data={query?.getDebt} installmentLength={installment} />
         <Footer />
       </SafeAreaView>
     </ScrollView>

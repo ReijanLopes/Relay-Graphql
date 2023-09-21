@@ -7,6 +7,15 @@ const styles = StyleSheet.create({
   color_white: {
     color: "#FFFF",
   },
+  color_B9B8B9: {
+    color: "#b9b8b9",
+  },
+  color_green: {
+    color: "#02d69d",
+  },
+  color_red: {
+    color: "#ff0000",
+  },
   fontSize_10: {
     fontSize: 10,
   },
@@ -44,9 +53,6 @@ const styles = StyleSheet.create({
   alignItems_center: {
     alignItems: "center",
   },
-  color_B9B8B9: {
-    color: "#b9b8b9",
-  },
   position_relative: {
     position: "relative",
   },
@@ -82,9 +88,6 @@ const styles = StyleSheet.create({
   },
   marginTop_10: {
     marginTop: 10,
-  },
-  color_red: {
-    color: "#ff0000",
   },
   gap_20: {
     gap: 20,
@@ -214,6 +217,7 @@ const styles = StyleSheet.create({
     height: 270,
   },
   headerLogo: { width: 100, height: 38.19 },
+  validatePayment: { backgroundColor: "#02d69d", borderRadius: 60 },
   footerText: {
     color: "#b9b8b9",
     fontWeight: "500",

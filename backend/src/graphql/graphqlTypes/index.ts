@@ -43,6 +43,7 @@ export const debt = {
 };
 
 export const installment = {
+  card: { type: GraphQLID },
   status: { type: GraphQLString },
   idMonth: { type: GraphQLInt },
   value: { type: GraphQLFloat },
@@ -120,7 +121,7 @@ export const debtTypeDefinition = new GraphQLObjectType({
     installments: { type: new GraphQLList(installmentType) },
     tax: { type: taxType },
     user: { type: userType },
-    card: { type: cardType },
+    card: { type: new GraphQLList(cardType) },
   },
 });
 

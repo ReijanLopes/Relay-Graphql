@@ -1,13 +1,10 @@
 import React from "react";
-import { Text, View, Pressable, Dimensions } from "react-native";
+import { Text, View, Pressable } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { Foundation } from "@expo/vector-icons";
 import Header from "./components/Header";
 
 import styles from "./styles";
-
-const screenHeight = Dimensions.get("window").height;
-const height = screenHeight - 200;
 
 type Props = {
   children: React.ReactNode;
@@ -15,6 +12,7 @@ type Props = {
 type State = {
   error: Error;
 };
+
 class ErrorBoundaryRetry extends React.Component<Props, State> {
   state = {
     error: null,
