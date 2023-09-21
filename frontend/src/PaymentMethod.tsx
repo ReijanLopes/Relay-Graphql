@@ -203,8 +203,8 @@ type borderRadiusSelectPayment = {
 const title = ["Pix", "Pix Parcelado"];
 export default function PaymentMethod() {
   const [params] = useSearchParams();
-  const userId = "64b83a4d339c9a6a82a5e8fe" || params.get("userId"); // add your userId;
-  const debtId = "64b1ab19ffc4fcdd475daff9" || params.get("debtId"); // add your debtId;
+  const userId = params.get("userId") || "64b83a4d339c9a6a82a5e8fe"; // Adicione seu valor padrão aqui
+  const debtId = params.get("debtId") || "64b1ab19ffc4fcdd475daff9"; // Adicione seu valor padrão aqui
 
   const query = useLazyLoadQuery<PaymentMethodQueryType>(PaymentMethodQuery, {
     userId,
@@ -214,7 +214,7 @@ export default function PaymentMethod() {
   const [select, setSelect] = useState<number | null>(null);
   const navigate = useNavigate();
 
-  const name = query?.getUser?.name;
+  const name = query?.getUser?.name || "";
   const value = query?.getDebt?.value || 0;
   const numberOfInstallments = query?.getDebt?.numberOfInstallments || 0;
   const tax = query?.getDebt?.tax?.value || 0;
@@ -226,10 +226,10 @@ export default function PaymentMethod() {
   );
 
   const renderList = useCallback(
-    (_: any, idx: number) => {
+    (idx: number) => {
       const installments = idx + 1;
 
-      const borderRadius: borderRadiusSelectPayment = useMemo(() => {
+      const borderRadius = useMemo(() => {
         const start =
           installments === 1 || installments === 2
             ? styles.borderStartRadius
@@ -248,11 +248,12 @@ export default function PaymentMethod() {
           installments === 1 ? value : calculatedTotal(value, tax, idx);
 
         const totalString =
-          installments != 1 ? formatNumberInString(total) : undefined;
+          installments !== 1 ? formatNumberInString(total) : undefined;
 
         const quantityInstallments = formatNumberInString(
-          installments == 1 ? value : total / installments
+          installments === 1 ? value : total / installments
         );
+
         const refund = immediateRefund(value, cashback);
         return { totalString, quantityInstallments, refund };
       }, [tax, idx, value]);
@@ -269,7 +270,7 @@ export default function PaymentMethod() {
           },
         };
 
-        return cashback || installments != 1 ? flagObject[idx] : null;
+        return cashback || installments !== 1 ? flagObject[idx] : null;
       }, [refund, tax]);
 
       const cashbackPercentage = useMemo(() => {
@@ -307,37 +308,51 @@ export default function PaymentMethod() {
     [select]
   );
 
+  const {
+    scrollView,
+    main,
+    titleContainer,
+    titleStyle,
+    paymentOptionsContainer,
+    errorContainer,
+  } = useMemo(
+    () => ({
+      scrollView: [styles.marginTopBottom_20, styles.fullWidth, styles.flex_1],
+      main: [
+        styles.flex_1,
+        styles.bgColor_white,
+        styles.fullWidth,
+        styles.alignItems_center,
+        styles.minH_full,
+      ],
+      titleContainer: [styles.marginTopBottom_20, styles.center],
+      titleStyle: [styles.bold, styles.title, styles.textCenter],
+      paymentOptionsContainer: [styles.fullWidth, styles.padding_10],
+      errorContainer: [styles.center, styles.flex_1],
+    }),
+    []
+  );
+
   return (
-    <ScrollView
-      style={[styles.marginTopBottom_20, styles.fullWidth, styles.flex_1]}
-    >
-      <SafeAreaView
-        style={[
-          styles.flex_1,
-          styles.bgColor_white,
-          styles.fullWidth,
-          styles.alignItems_center,
-          styles.minH_full,
-        ]}
-      >
+    <ScrollView style={scrollView}>
+      <SafeAreaView style={main}>
         <Header />
-        <View style={[styles.marginTopBottom_20, styles.center]}>
+        <View style={titleContainer}>
           {name && (
-            <Text style={[styles.bold, styles.title, styles.textCenter]}>
-              {name}, como você quer pagar?
-            </Text>
+            <Text style={titleStyle}>{name}, como você quer pagar?</Text>
           )}
         </View>
         {validatedAction ? (
-          <View style={[styles.fullWidth, styles.padding_10]}>
-            {Array.from({ length: numberOfInstallments }).map(renderList)}
+          <View style={paymentOptionsContainer}>
+            {Array.from({ length: numberOfInstallments }).map((_, idx) =>
+              renderList(idx)
+            )}
           </View>
         ) : (
-          <View style={[styles.center, { height: height }]}>
+          <View style={errorContainer}>
             <Text style={styles.bold}>Lamentamos, mas ocorreu um erro</Text>
           </View>
         )}
-
         <Footer />
       </SafeAreaView>
     </ScrollView>

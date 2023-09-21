@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import "core-js/stable";
 import { graphql, useFragment, useMutation } from "react-relay";
 import { useOpenPix, Charge } from "@openpix/react";
@@ -43,17 +43,44 @@ const QrCodeFragment = graphql`
   }
 `;
 
-const QrCode = ({
-  variables,
-  setError,
-  installment,
-  userId,
-}: {
+const createInstallment = (
+  installment: number,
+  valueOfInstallments: number
+) => {
+  const date = new Date();
+  const currentMonth = date.getMonth();
+  date.setDate(5);
+
+  return Array.from({ length: installment + 1 }).map((_, idx: number) => ({
+    status: idx === 0 ? "paid" : "onTime",
+    idMonth: idx + 1,
+    value: valueOfInstallments,
+    expires: String(new Date(date.setMonth(currentMonth + (idx + 1)))),
+  }));
+};
+
+const CustomQrCode = ({ brcode }: { brcode: any }) => (
+  <>
+    {brcode ? (
+      <QRCode size={250} value={brcode} />
+    ) : (
+      <View style={styles.padding_30}>
+        <Text style={styles.textCenter}>
+          Houve algum erro na geração do QRcode
+        </Text>
+      </View>
+    )}
+  </>
+);
+
+type QrCodeType = {
   variables: QrCode_DebtFragmentType;
   setError: React.Dispatch<any>;
   installment: number;
   userId: string;
-}) => {
+};
+
+const QrCode = ({ variables, setError, installment, userId }: QrCodeType) => {
   const [commit] = useMutation<QrCodeMutationType>(QrCodeMutation);
   const [charge, setCharge] = useState<Charge | null>(null);
   const navigate = useNavigate();
@@ -63,67 +90,68 @@ const QrCode = ({
     variables
   );
 
-  const debtId = fragmentData?._id;
-  const tax = fragmentData.tax?.value || 0;
-  const cashback = fragmentData.cashback || 0;
-  const value = fragmentData.value || 0;
+  const { _id: debtId, tax, cashback, value } = fragmentData;
 
-  const { valueOfInstallments, totalMoreTax } = useMemo(
-    () => calculatingInstallmentValue(value, tax, installment),
-    [value, tax, installment]
-  );
-
-  const data = new Date();
-  const currentMonth = data.getMonth();
-  data.setDate(5);
-  const handlePay = () => {
-    // I don't know with the "charge" information it would be used so it is unused, but it is necessary for the payment function
-    const installments = Array.from({ length: installment + 1 }).map(
-      (_, idx: number) => {
-        const expires = data.setMonth(currentMonth + (idx + 1));
-
-        return {
-          status: idx === 0 ? "paid" : "onTime",
-          idMonth: idx + 1,
-          value: valueOfInstallments,
-          expires: String(new Date(expires)),
-        };
-      }
+  const { valueOfInstallments, totalMoreTax, installments } = useMemo(() => {
+    const { valueOfInstallments, totalMoreTax } = calculatingInstallmentValue(
+      value || 0,
+      tax?.value || 0,
+      installment
     );
+    const installments = createInstallment(installment, valueOfInstallments);
 
+    return { valueOfInstallments, totalMoreTax, installments };
+  }, [value, tax, installment]);
+
+  const { cashDesk, navigateUrl } = useMemo(() => {
+    const cashDesk = installment === 0 ? totalMoreTax * (cashback || 0) : 0;
+    const navigateUrl =
+      installment === 0
+        ? "/confirmed"
+        : `/card?userId=${userId}&debtId=${debtId}`;
+    return { cashDesk, navigateUrl };
+  }, [installment]);
+
+  const handlePay = useCallback(() => {
     commit({
       variables: {
         inputDebt: {
           _id: debtId,
           totalValue: totalMoreTax,
-          installments: installments,
+          installments,
           user: userId,
         },
         inputUser: {
           _id: userId,
           debts: debtId,
-          cashDesk: installment == 0 ? totalMoreTax * cashback : 0,
+          cashDesk: cashDesk,
         },
       },
       onCompleted() {
-        navigate(
-          installment === 0
-            ? "/confirmed"
-            : `/card?userId=${userId}&debtId=${debtId}`
-        );
+        navigate(navigateUrl);
       },
       onError(error) {
         setError(error);
       },
     });
-  };
+  }, [
+    commit,
+    debtId,
+    totalMoreTax,
+    installments,
+    userId,
+    cashDesk,
+    navigate,
+    navigateUrl,
+    setError,
+  ]);
 
   const { chargeCreate } = useOpenPix({
     appID: process.env.APP_ID,
     handlePay,
   });
 
-  const newCharge = () => {
+  const newCharge = useCallback(() => {
     const { charge, error } = chargeCreate({
       correlationID: debtId,
       value: valueOfInstallments,
@@ -134,15 +162,14 @@ const QrCode = ({
 
     if (error) {
       setError(error);
-      return;
+    } else if (charge) {
+      handleExpires();
     }
-
-    charge ? handleExpires() : null;
-  };
+  }, [chargeCreate, debtId, valueOfInstallments, setError]);
 
   useEffect(() => {
     newCharge();
-  }, []);
+  }, [newCharge]);
 
   const handleExpires = useDebounce(() => {
     newCharge();
@@ -154,63 +181,69 @@ const QrCode = ({
       : "00/00/0000 - 00:00";
   }, [charge?.expiresIn]);
 
-  const copyToClipboard = () => {
+  const copyToClipboard = useCallback(() => {
     const text = charge?.brcode
       ? charge?.brcode
-      : "Copiar o QrCode não foi possivel";
-
+      : "Copiar o QrCode não foi possível";
     Clipboard.setStringAsync(text);
-  };
+  }, [charge?.brcode]);
+
+  const {
+    container,
+    containerQrCode,
+    buttonCopyQrCode,
+    textCopy,
+    containerTerm,
+    title,
+    text,
+  } = useMemo(
+    () => ({
+      container: [styles.center, styles.fullWidth],
+      containerQrCode: [
+        styles.border_gray,
+        styles.center,
+        styles.QrCodeContainer,
+        styles.borderWidth_2,
+      ],
+      textCopy: [styles.color_white, styles.fontSize_14, styles.marginR_5],
+      buttonCopyQrCode: [
+        styles.flag,
+        styles.flexDirection_row,
+        styles.bgColor_darkBlue,
+        styles.center,
+        styles.marginTop_10,
+      ],
+      containerTerm: [
+        styles.marginTopBottom_20,
+        styles.center,
+        styles.fullWidth,
+      ],
+      title: [styles.fontSize_12, styles.text_gray],
+      text: [styles.fontSize_12, styles.bold],
+    }),
+    []
+  );
+
   return (
-    <View style={[styles.center, styles.fullWidth]}>
-      <View
-        style={[
-          styles.border_gray,
-          styles.center,
-          styles.QrCodeContainer,
-          styles.borderWidth_2,
-        ]}
-      >
-        {charge?.brcode ? (
-          <QRCode size={250} value={charge?.brcode} />
-        ) : (
-          <View style={styles.padding_30}>
-            <Text style={styles.textCenter}>
-              Houve algum erro na geração do QRcode
-            </Text>
-          </View>
-        )}
+    <View style={container}>
+      <View style={containerQrCode}>
+        <CustomQrCode brcode={charge?.brcode} />
       </View>
 
       <Pressable
-        style={[
-          styles.flag,
-          styles.flexDirection_row,
-          styles.bgColor_darkBlue,
-          styles.center,
-          styles.marginTop_10,
-        ]}
+        style={buttonCopyQrCode}
         onPress={() => {
+          handlePay();
           copyToClipboard();
         }}
       >
-        <Text
-          style={[styles.color_white, styles.fontSize_14, styles.marginR_5]}
-        >
-          Clique para copiar QR CODE
-        </Text>
+        <Text style={textCopy}>Clique para copiar QR CODE</Text>
         <MaterialIcons name="file-copy" size={18} color="white" />
       </Pressable>
 
-      <View
-        style={[styles.marginTopBottom_20, styles.center, styles.fullWidth]}
-      >
-        <Text style={[styles.fontSize_12, styles.text_gray]}>
-          Prazo de pagamento:
-        </Text>
-        <Text style={[styles.fontSize_12, styles.bold]}>
-          {timeRemainingInSeconds}
-        </Text>
+      <View style={containerTerm}>
+        <Text style={title}>Prazo de pagamento:</Text>
+        <Text style={text}>{timeRemainingInSeconds}</Text>
       </View>
     </View>
   );

@@ -14,19 +14,34 @@ import { calculatingInstallmentValue, formatNumberInString } from "./utils";
 
 const textInstallments = ["entrada no Pix", "no cartão"];
 
+type installment = {
+  value: string;
+  label: string;
+  status: string | null | undefined;
+};
+
+type InfoType = {
+  data: Info_DebtFragment$key;
+  select: number;
+  installmentLength: number;
+  installmentPayment?: installment[];
+};
+
+type StepsType = {
+  idx: number;
+  length: number;
+  selected: boolean;
+  completed: boolean;
+  valueOfInstallments: string;
+};
+
 const Steps = ({
   idx,
   length,
   selected,
   completed,
   valueOfInstallments,
-}: {
-  idx: number;
-  length: number;
-  selected: boolean;
-  completed: boolean;
-  valueOfInstallments: string;
-}) => {
+}: StepsType) => {
   return (
     <View
       style={[
@@ -76,20 +91,35 @@ const QrCodeFragment = graphql`
   }
 `;
 
+const howWorks = [
+  "1˚ - Abra o app do seu banco",
+  "2˚ - Escolha pagar via pix",
+  "3˚ - Copie e cole o código do pagamento ou escaneie o QR Code",
+];
+
+const List = ({ text }: { text: string }) => {
+  return <Text style={styles.fontSize_12}>{text}</Text>;
+};
+
+const createOptions = (
+  installmentLength: number,
+  valueOfInstallmentsString: string
+) => {
+  return (
+    Array.from({ length: installmentLength + 1 }).map((_, idx: number) => ({
+      value: String(idx),
+      label: `${idx}x ${valueOfInstallmentsString}`,
+      status: "onTime",
+    })) || []
+  );
+};
+
 export default function Info({
   data,
+  select = 1,
   installmentLength,
-  installmentPayment = [{ value: null, label: "ontime", status: null }],
-}: {
-  data: Info_DebtFragment$key;
-  installmentLength: number;
-
-  installmentPayment?: Array<{
-    value: string | null;
-    label: string;
-    status: string | null;
-  }>;
-}) {
+  installmentPayment,
+}: InfoType) {
   const fragmentData = useFragment<Info_DebtFragment$key>(QrCodeFragment, data);
 
   const id = fragmentData?._id;
@@ -104,18 +134,15 @@ export default function Info({
       totalMoreTax: formatNumberInString(totalMoreTax),
       valueOfInstallmentsString,
     };
-  }, []);
-
-  const select = useMemo(() => {
-    return installmentPayment?.[0].label
-      ? installmentPayment?.find(({ status }) => status !== "paid")
-      : { label: "ontime" };
-  }, [installmentPayment?.[0].label, installmentPayment?.[0]?.status]);
+  }, [value, tax, installmentLength]);
 
   const renderSteps = useCallback(
-    (_: any, idx: number) => {
-      const completed = installmentPayment?.[idx]?.status === "paid";
-      const selected = select?.label === installmentPayment?.[idx]?.label;
+    ({ status }: installment, idx: number) => {
+      const completed = status == "paid";
+      const selected = status != "paid" && select > 0;
+      if (selected) {
+        select = select - 1;
+      }
 
       return (
         <Steps
@@ -128,49 +155,73 @@ export default function Info({
         />
       );
     },
-    [textInstallments, valueOfInstallmentsString]
+    [textInstallments, valueOfInstallmentsString, installmentPayment]
+  );
+
+  const renderListHowWorks = useCallback(
+    (text: string, idx: number) => <List key={idx} text={text} />,
+    []
+  );
+
+  const renderList = useMemo(() => {
+    return (installmentPayment?.length || 0) > 0
+      ? installmentPayment?.map(renderSteps)
+      : createOptions(installmentLength, valueOfInstallmentsString).map(
+          renderSteps
+        );
+  }, [
+    installmentLength,
+    installmentPayment?.[installmentPayment?.length - 1],
+    valueOfInstallmentsString,
+  ]);
+
+  const {
+    container,
+    containerCET,
+    containerShowMore,
+    containerID,
+    label,
+    textId,
+  } = useMemo(
+    () => ({
+      container: [styles.fullWidth, styles.infoContainer],
+      containerCET: [
+        styles.justifyContent_spaceBetween,
+        styles.paddingTopBottom_20,
+        styles.flexDirection_row,
+      ],
+      containerShowMore: [
+        styles.justifyContent_spaceBetween,
+        styles.paddingTopBottom_20,
+        styles.flexDirection_row,
+      ],
+      containerID: [styles.alignItems_center, styles.marginTopBottom_20],
+      label: [styles.fontSize_12, styles.text_gray],
+      textId: [styles.fontSize_12, styles.bold],
+    }),
+    []
   );
 
   return (
-    <View style={[styles.fullWidth, styles.infoContainer]}>
-      <View style={styles.fullWidth}>
-        {Array.from({ length: installmentLength }).map(renderSteps)}
-      </View>
+    <View style={container}>
+      <View style={styles.fullWidth}>{renderList}</View>
       <Line />
-      <View
-        style={[
-          styles.justifyContent_spaceBetween,
-          styles.paddingTopBottom_20,
-          styles.flexDirection_row,
-        ]}
-      >
+      <View style={containerCET}>
         <Text>CET: {cet}%</Text>
         <Text>Total: {totalMoreTax}</Text>
       </View>
 
       <Line />
-      <View
-        style={[
-          styles.justifyContent_spaceBetween,
-          styles.paddingTopBottom_20,
-          styles.flexDirection_row,
-        ]}
-      >
+      <View style={containerShowMore}>
         <ShowMore title="Como Funciona" gap={5}>
-          <Text style={styles.fontSize_12}>1˚ - Abra o app do seu banco</Text>
-          <Text style={styles.fontSize_12}>2˚ - Escolha pagar via pix</Text>
-          <Text style={styles.fontSize_12}>
-            3˚ - Copie e cole o código do pagamento ou escaneie o QR Code
-          </Text>
+          {howWorks.map(renderListHowWorks)}
         </ShowMore>
       </View>
       <Line />
 
-      <View style={[styles.alignItems_center, styles.marginTopBottom_20]}>
-        <Text style={[styles.fontSize_12, styles.text_gray]}>
-          Identificador:
-        </Text>
-        <Text style={[styles.fontSize_12, styles.bold]}>{id}</Text>
+      <View style={containerID}>
+        <Text style={label}>Identificador:</Text>
+        <Text style={textId}>{id}</Text>
       </View>
     </View>
   );

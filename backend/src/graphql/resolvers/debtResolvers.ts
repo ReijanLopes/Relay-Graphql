@@ -25,7 +25,11 @@ export const mutationDebt = async (_, { input }: { input: DebtInput }) => {
   const { _id, user, card, ...res } = input;
   if (!_id) {
     try {
-      const createDebt = await debt.create({ ...res, user, card });
+      const createDebt = await debt.create({
+        ...res,
+        user,
+        card,
+      });
       userModel.updateOne({ _id: user }, { $set: { cards: createDebt?._id } });
       cardModel.updateOne({ _id: card }, { $set: { cards: createDebt?._id } });
       return createDebt.save();
@@ -34,7 +38,7 @@ export const mutationDebt = async (_, { input }: { input: DebtInput }) => {
     }
   } else {
     try {
-      await debt.updateOne({ _id }, { ...res, user, card });
+      await debt.updateOne({ _id }, { ...res, user }, { $push: { card } });
       userModel.updateOne({ _id: user }, { $set: { cards: _id } });
       cardModel.updateOne({ _id: card }, { $set: { cards: _id } });
     } catch (error) {

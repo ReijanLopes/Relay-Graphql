@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useMemo, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,10 +10,22 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 import styles from "../styles";
 
+import type { ChangeEvent } from "react";
+
 type option = {
   value: string;
   label: string;
   status: string;
+};
+
+type SelectType = {
+  defaultValue?: option;
+  options: Array<option>;
+  error?: string;
+  label: string;
+  placeholder?: string;
+  onChange?: (e: string | ChangeEvent<any>) => void;
+  onBlur?: (e: any) => void;
 };
 
 export default function Select({
@@ -24,30 +36,33 @@ export default function Select({
   placeholder = "Selecione uma opção",
   onChange,
   onBlur,
-}: {
-  defaultValue?: option;
-  options: Array<option>;
-  error?: string;
-  label: string;
-  placeholder?: string;
-  onChange?: (e: string | React.ChangeEvent<any>) => void;
-  onBlur?: (e: any) => void;
-}) {
+}: SelectType) {
   const [expanded, setExpanded] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(
-    defaultValue?.value ? defaultValue : null
+  const [selectedOption, setSelectedOption] = useState<option | null>(
+    defaultValue ? defaultValue : null
+  );
+  const optionFistValue = options?.[0]?.value;
+  const optionLength = options?.length;
+
+  useEffect(() => {
+    if (onChange) {
+      onChange(defaultValue?.value ? defaultValue?.value : "");
+    }
+  }, []);
+
+  const handleOptionPress = useCallback(
+    (option: option) => {
+      setSelectedOption(option);
+      setExpanded(false);
+      onChange ? onChange(option?.value) : null;
+    },
+    [onChange, selectedOption?.value]
   );
 
-  const handleOptionPress = (option: option) => {
-    setSelectedOption(option);
-    setExpanded(false);
-    onChange ? onChange(option?.value) : null;
-  };
-
-  const toggleExpanded = () => {
+  const toggleExpanded = useCallback(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpanded(!expanded);
-  };
+  }, [expanded]);
 
   const renderTouchable = useCallback(
     (option: option) => (
@@ -63,56 +78,88 @@ export default function Select({
     ),
     [expanded]
   );
+
+  const {
+    container,
+    containerTouchable,
+    childrenButton,
+    text,
+    containerList,
+    errorStyle,
+  } = useMemo(
+    () => ({
+      container: [styles.position_relative, styles.fullWidth],
+      containerTouchable: [
+        styles.titleInputContainer,
+        styles.position_absolute,
+        styles.bgColor_white,
+      ],
+      childrenButton: [
+        styles.padding_10,
+        styles.borderRadius_3,
+        styles.borderWidth_1,
+        styles.alignItems_center,
+        styles.justifyContent_spaceBetween,
+        styles.fullWidth,
+        styles.flexDirection_row,
+        {
+          borderColor: expanded && optionFistValue ? "#31b5f3" : "#d8e1ef",
+        },
+      ],
+      text: { color: selectedOption?.value ? "black" : "#d8e1ef" },
+      containerList: [
+        styles.overflow_hidden,
+        {
+          height: expanded && optionFistValue ? optionLength * 40 : 0,
+        },
+      ],
+      errorStyle: [styles.color_red, styles.fontSize_10],
+    }),
+    [expanded, optionFistValue, selectedOption?.value]
+  );
+
+  const { listTouchable, iconArrow } = useMemo(() => {
+    const listTouchable = optionFistValue ? options.map(renderTouchable) : "";
+
+    const iconArrow = optionFistValue ? (
+      <MaterialIcons
+        name={expanded ? "arrow-drop-up" : "arrow-drop-down"}
+        size={24}
+        color="black"
+      />
+    ) : null;
+
+    return { listTouchable, iconArrow };
+  }, [expanded, optionFistValue]);
+
+  const elementError = useMemo(
+    () =>
+      error ? (
+        <View>
+          <Text style={errorStyle}>{error}</Text>
+        </View>
+      ) : null,
+    [error]
+  );
+
+  const placeholderLabel = useMemo(
+    () => (selectedOption ? selectedOption?.label : null),
+    [selectedOption, selectedOption?.label]
+  );
+
   return (
-    <View style={[styles.position_relative, styles.fullWidth]}>
-      <View
-        style={[
-          styles.titleInputContainer,
-          styles.position_absolute,
-          styles.bgColor_white,
-        ]}
-      >
+    <View style={container}>
+      <View style={containerTouchable}>
         <Text style={styles.fontSize_10}>{label}</Text>
       </View>
       <TouchableWithoutFeedback onPress={toggleExpanded}>
-        <View
-          style={[
-            styles.padding_10,
-            styles.borderRadius_3,
-            styles.borderWidth_1,
-            styles.alignItems_center,
-            styles.justifyContent_spaceBetween,
-            styles.fullWidth,
-            styles.flexDirection_row,
-            {
-              borderColor:
-                expanded && options?.[0]?.value ? "#31b5f3" : "#d8e1ef",
-            },
-          ]}
-        >
-          <Text style={{ color: selectedOption ? "black" : "#d8e1ef" }}>
-            {selectedOption ? selectedOption?.label : placeholder}
-          </Text>
-          {options?.[0]?.value ? (
-            <MaterialIcons
-              name={expanded ? "arrow-drop-up" : "arrow-drop-down"}
-              size={24}
-              color="black"
-            />
-          ) : null}
+        <View style={childrenButton}>
+          <Text style={text}>{placeholderLabel}</Text>
+          {iconArrow}
         </View>
       </TouchableWithoutFeedback>
 
-      <View
-        style={[
-          styles.overflow_hidden,
-          {
-            height: expanded && options?.[0]?.value ? options.length * 40 : 0,
-          },
-        ]}
-      >
-        {options?.[0]?.value ? options.map(renderTouchable) : ""}
-      </View>
+      <View style={containerList}>{listTouchable}</View>
       <TextInput
         editable={false}
         value={selectedOption?.value}
@@ -120,11 +167,7 @@ export default function Select({
         onBlur={onBlur}
         style={styles.display_none}
       />
-      {error ? (
-        <View>
-          <Text style={[styles.color_red, styles.fontSize_10]}>{error}</Text>
-        </View>
-      ) : null}
+      {elementError}
     </View>
   );
 }
