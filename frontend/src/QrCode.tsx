@@ -17,20 +17,8 @@ import {
 
 import styles from "./styles";
 
-import type { QrCodeMutation as QrCodeMutationType } from "./__generated__/QrCodeMutation.graphql";
 import type { QrCode_DebtFragment$key as QrCode_DebtFragmentType } from "./__generated__/QrCode_DebtFragment.graphql";
-
-const QrCodeMutation = graphql`
-  mutation QrCodeMutation($inputDebt: DebtInput, $inputUser: UserInput) {
-    mutationDebt(input: $inputDebt) {
-      value
-      cashback
-    }
-    mutationUser(input: $inputUser) {
-      _id
-    }
-  }
-`;
+import useQrCodeMutation from "./hooks/useQrcodeMutation";
 
 const QrCodeFragment = graphql`
   fragment QrCode_DebtFragment on Debt {
@@ -81,16 +69,19 @@ type QrCodeType = {
 };
 
 const QrCode = ({ variables, setError, installment, userId }: QrCodeType) => {
-  const [commit] = useMutation<QrCodeMutationType>(QrCodeMutation);
   const [charge, setCharge] = useState<Charge | null>(null);
-  const navigate = useNavigate();
 
   const fragmentData = useFragment<QrCode_DebtFragmentType>(
     QrCodeFragment,
     variables
   );
-
   const { _id: debtId, tax, cashback, value } = fragmentData;
+
+  const url = useMemo(() => {
+    return installment === 0
+      ? "/confirmed"
+      : `/card?userId=${userId}&debtId=${debtId}`;
+  }, [installment, userId, debtId]);
 
   const { valueOfInstallments, totalMoreTax, installments } = useMemo(() => {
     const { valueOfInstallments, totalMoreTax } = calculatingInstallmentValue(
@@ -103,52 +94,35 @@ const QrCode = ({ variables, setError, installment, userId }: QrCodeType) => {
     return { valueOfInstallments, totalMoreTax, installments };
   }, [value, tax, installment]);
 
-  const { cashDesk, navigateUrl } = useMemo(() => {
-    const cashDesk = installment === 0 ? totalMoreTax * (cashback || 0) : 0;
-    const navigateUrl =
-      installment === 0
-        ? "/confirmed"
-        : `/card?userId=${userId}&debtId=${debtId}`;
-    return { cashDesk, navigateUrl };
-  }, [installment]);
+  const cashDesk = useMemo(
+    () => (installment === 0 ? totalMoreTax * (cashback || 0) : 0),
+    [installment]
+  );
 
-  const handlePay = useCallback(() => {
-    commit({
-      variables: {
-        inputDebt: {
-          _id: debtId,
-          totalValue: totalMoreTax,
-          installments,
-          user: userId,
-        },
-        inputUser: {
-          _id: userId,
-          debts: debtId,
-          cashDesk: cashDesk,
-        },
+  const { submit, error } = useQrCodeMutation(
+    {
+      inputDebt: {
+        _id: debtId,
+        totalValue: totalMoreTax,
+        installments,
+        user: userId,
       },
-      onCompleted() {
-        navigate(navigateUrl);
+      inputUser: {
+        _id: userId,
+        debts: debtId,
+        cashDesk: cashDesk,
       },
-      onError(error) {
-        setError(error);
-      },
-    });
-  }, [
-    commit,
-    debtId,
-    totalMoreTax,
-    installments,
-    userId,
-    cashDesk,
-    navigate,
-    navigateUrl,
-    setError,
-  ]);
+    },
+    url
+  );
+
+  useEffect(() => {
+    setError(error);
+  }, [error]);
 
   const { chargeCreate } = useOpenPix({
     appID: process.env.APP_ID,
-    handlePay,
+    submit,
   });
 
   const newCharge = useCallback(() => {
@@ -233,7 +207,6 @@ const QrCode = ({ variables, setError, installment, userId }: QrCodeType) => {
       <Pressable
         style={buttonCopyQrCode}
         onPress={() => {
-          handlePay();
           copyToClipboard();
         }}
       >
