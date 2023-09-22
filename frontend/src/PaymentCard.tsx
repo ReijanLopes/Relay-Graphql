@@ -18,6 +18,8 @@ import {
   formatExpiringInDate,
 } from "./utils";
 
+import useCardMutation from "./hooks/useCardMutation";
+
 import styles from "./styles";
 
 import type { PaymentCardQuery as PaymentCardQueryType } from "./__generated__/PaymentCardQuery.graphql";
@@ -58,23 +60,6 @@ const PaymentCardQuery = graphql`
   }
 `;
 
-const PaymentCardMutation = graphql`
-  mutation PaymentCardMutation($inputCard: CardInput, $inputDebt: DebtInput) {
-    mutationCard(input: $inputCard) {
-      _id
-    }
-    mutationDebt(input: $inputDebt) {
-      _id
-      installments {
-        status
-        idMonth
-        value
-        expires
-      }
-    }
-  }
-`;
-
 const validate = {
   name: {
     error: "Nome é necessário",
@@ -93,26 +78,19 @@ const validate = {
     validate: /^\d{2}\/\d{2}$/,
   },
   cvv: { error: "Código de segurança é necessário", validate: /^\d{3}$/ },
-  installment: {
+  installmentLength: {
     error: "As parcelas que serão pagas nesse cartão são obrigatórias",
     validate: /^.*$/,
   },
 };
 
-const createInstallment = (
-  installments: InstallmentsInput[],
-  selectedPlots: number
-) => {
-  return installments.map(({ status, ...res }) => {
-    if (status != "paid" && selectedPlots > 0) {
-      selectedPlots = selectedPlots - 1;
-      return { ...res, status: "paid" };
-    }
-    return { ...res, status };
-  });
-};
-
-type Key = "name" | "number" | "cpf" | "expiration" | "cvv" | "installments";
+type Key =
+  | "name"
+  | "number"
+  | "cpf"
+  | "expiration"
+  | "cvv"
+  | "installmentLength";
 
 type Values = CardInput & {
   installments?: ReadonlyArray<InstallmentsInput | null> | null;
@@ -123,7 +101,7 @@ const validationErrors = (values: Values) => {
   const keys = Object.keys(validate);
   keys.map((key: Key) => {
     const validating =
-      key != "installments"
+      key != "installmentLength"
         ? validate?.[key]?.validate?.test(values?.[key])
         : values?.[key].length;
     if (!values?.[key] || !validating) {
@@ -165,19 +143,15 @@ const formattingPlots = (
 };
 
 export default function PaymentCard() {
-  const navigate = useNavigate();
   const [params] = useSearchParams();
   const debtId = String(params.get("debtId"));
 
   const query = useLazyLoadQuery<PaymentCardQueryType>(PaymentCardQuery, {
     debtId,
   });
-  const [commit, isInFlight] =
-    useMutation<PaymentCardMutationType>(PaymentCardMutation);
 
-  const [errorSubmit, setErrorSubmit] = useState<Error | null>(null);
-  const [installments, setInstallments] = useState(
-    query?.getDebt?.installments || []
+  const { installments, submit, isInFlight, error } = useCardMutation(
+    query?.getDebt?.installments
   );
 
   const name = query?.getDebt?.user?.name;
@@ -188,10 +162,12 @@ export default function PaymentCard() {
     ? query?.getDebt?.card?.length - 1
     : 0;
   const cpf = query?.getDebt?.card?.[cardLength]?.cpf;
-  const cardNumber = query?.getDebt?.card?.[cardLength]?.number;
+  const number = query?.getDebt?.card?.[cardLength]?.number;
   const cvv = query?.getDebt?.card?.[cardLength]?.cvv;
   const expiration = query?.getDebt?.card?.[cardLength]?.expiration;
   const idCard = query?.getDebt?.card?.[cardLength]?._id;
+  const idUser = query?.getDebt?.user?._id;
+  const idDebt = query?.getDebt?._id;
 
   const installmentFilter = formattingPlots(installments, "paid");
   const installmentPayment = formattingPlots(installments);
@@ -252,17 +228,6 @@ export default function PaymentCard() {
     []
   );
 
-  const transformInstallment = useCallback(
-    (installment: number) => {
-      const install = createInstallment(installments, installment);
-      const HowManyInstallmentsWerePaid = install.filter(
-        (item) => item.status === "onTime"
-      ).length;
-      return { install, HowManyInstallmentsWerePaid };
-    },
-    [installments]
-  );
-
   return (
     <ScrollView style={main}>
       <SafeAreaView style={container}>
@@ -277,43 +242,21 @@ export default function PaymentCard() {
           initialValues={{
             name,
             cpf,
-            number: cardNumber,
+            number,
             expiration: expirationString,
             cvv: cvv,
-            installment: installments?.length,
+            installmentLength: installments?.length,
           }}
           validate={(values) => {
-            const errors = validationErrors(values);
-
-            return errors;
+            return validationErrors(values);
           }}
-          onSubmit={({ cvv, installment, number, ...values }) => {
-            const { HowManyInstallmentsWerePaid, install } =
-              transformInstallment(installment);
-            commit({
-              variables: {
-                inputCard: {
-                  ...values,
-                  cvv: Number(cvv),
-                  _id: cardNumber == number ? idCard : null,
-                  user: query?.getDebt?.user?._id,
-                  debts: query?.getDebt?._id,
-                },
-                inputDebt: {
-                  _id: query?.getDebt?._id,
-                  installments: install,
-                  card: cardNumber == number ? idCard : null,
-                },
-              },
-              onCompleted(item) {
-                setInstallments(item?.mutationDebt?.installments || []);
-                HowManyInstallmentsWerePaid <= 0
-                  ? navigate("/confirmed")
-                  : null;
-              },
-              onError(error) {
-                setErrorSubmit(error);
-              },
+          onSubmit={(values) => {
+            submit({
+              ...values,
+              idCard,
+              idUser,
+              idDebt,
+              defaultNumber: number,
             });
           }}
         >
@@ -374,9 +317,9 @@ export default function PaymentCard() {
                   installmentFilter?.[installmentFilter?.length - 1]
                 }
                 label="Parcelas"
-                onChange={handleChange("installment")}
-                onBlur={handleBlur("installment")}
-                error={errors?.installment}
+                onChange={handleChange("installmentLength")}
+                onBlur={handleBlur("installmentLength")}
+                error={errors?.installmentLength}
               />
               <Pressable
                 style={buttonSubmit}
@@ -391,7 +334,7 @@ export default function PaymentCard() {
             </View>
           )}
         </Formik>
-        {errorSubmit ? (
+        {error ? (
           <View style={containerError}>
             <Text style={styles.color_red}>Houve algum erro</Text>
           </View>
