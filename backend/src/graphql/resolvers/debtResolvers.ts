@@ -1,27 +1,31 @@
 import { GraphQLError } from "graphql";
 import debt from "../../models/debt";
+import taxModel from "../../models/tax";
 import userModel from "../../models/user";
 import cardModel from "../../models/card";
 import { DebtInput } from "../../types";
 
 export const getDebt = async (_: any, { _id }: { _id?: string }) => {
-  // Wow, seriously I have never used this and I saw it in a community place. I thought it would not work because it is not used anywhere, but it seriously works
-  // What could be a bad import, could be the tracking and arrangement of my folders or a bug that could be temporary
-  require("../../models/tax").default;
   try {
     const result = await debt
       .findById({ _id })
-      .populate("tax")
       .populate("user")
       .populate("card")
       .lean();
-    return result;
+
+    const { tax, ...res } = result;
+    const resultTax = await taxModel.findById({ _id: tax }).lean();
+
+    return { ...res, tax: resultTax };
   } catch (error) {
     throw new GraphQLError(error?.message);
   }
 };
 
-export const mutationDebt = async (_, { input }: { input: DebtInput }) => {
+export const createAndUpdateDebt = async (
+  _,
+  { input }: { input: DebtInput }
+) => {
   const { _id, user, card, ...res } = input;
   if (!_id) {
     try {
@@ -44,6 +48,7 @@ export const mutationDebt = async (_, { input }: { input: DebtInput }) => {
     } catch (error) {
       throw new GraphQLError(error?.message);
     }
-    return await debt.findById({ _id }).lean();
+    const resultDebt = await debt.findById({ _id }).lean();
+    return resultDebt;
   }
 };

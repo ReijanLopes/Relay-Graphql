@@ -207,6 +207,7 @@ const QrCode = ({ variables, setError, installment, userId }: QrCodeType) => {
       <Pressable
         style={buttonCopyQrCode}
         onPress={() => {
+          submit();
           copyToClipboard();
         }}
       >

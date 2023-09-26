@@ -17,7 +17,10 @@ export const getCard = async (_: any, { _id }: { _id: string }) => {
   }
 };
 
-export const mutationCard = async (_, { input }: { input: CardInput }) => {
+export const createAndUpdateCard = async (
+  _,
+  { input }: { input: CardInput }
+) => {
   const { _id, debts, user, ...res } = input;
   if (!_id) {
     try {

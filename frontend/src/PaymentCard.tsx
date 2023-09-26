@@ -31,7 +31,7 @@ import type {
 
 const PaymentCardQuery = graphql`
   query PaymentCardQuery($debtId: ID!) {
-    getDebt(_id: $debtId) {
+    debt(_id: $debtId) {
       _id
       value
       tax {
@@ -98,8 +98,8 @@ type Values = CardInput & {
 
 const validationErrors = (values: Values) => {
   const errors = {};
-  const keys = Object.keys(validate);
-  keys.map((key: Key) => {
+  const keys = Object.keys(validate) as Key[];
+  keys.map((key) => {
     const validating =
       key != "installmentLength"
         ? validate?.[key]?.validate?.test(values?.[key])
@@ -112,23 +112,23 @@ const validationErrors = (values: Values) => {
   return errors;
 };
 
-const createOptions = (installments: InstallmentsInput[]) => {
+const createOptions = (installments: readonly (InstallmentsInput | null)[]) => {
   return (
-    installments.map(({ idMonth, value, status }) => ({
-      value: String(idMonth),
-      label: `${idMonth}x ${formatNumberInString(value || 0)}`,
-      status,
+    installments.map((item) => ({
+      value: String(item?.idMonth),
+      label: `${item?.idMonth}x ${formatNumberInString(item?.value || 0)}`,
+      status: item?.status,
     })) || []
   );
 };
 
 const formattingPlots = (
-  installments: InstallmentsInput[],
+  installments: readonly (InstallmentsInput | null)[],
   filter?: string
 ) => {
   if (filter) {
     const installmentsFilter = installments.filter(
-      (item) => item.status !== filter
+      (item) => item?.status !== filter
     );
     const unpaid = installments?.length - installmentsFilter?.length;
 
@@ -151,23 +151,21 @@ export default function PaymentCard() {
   });
 
   const { installments, submit, isInFlight, error } = useCardMutation(
-    query?.getDebt?.installments
+    query?.debt?.installments
   );
 
-  const name = query?.getDebt?.user?.name;
+  const name = query?.debt?.user?.name;
 
   const portion = installments?.length || 0;
 
-  const cardLength = query?.getDebt?.card
-    ? query?.getDebt?.card?.length - 1
-    : 0;
-  const cpf = query?.getDebt?.card?.[cardLength]?.cpf;
-  const number = query?.getDebt?.card?.[cardLength]?.number;
-  const cvv = query?.getDebt?.card?.[cardLength]?.cvv;
-  const expiration = query?.getDebt?.card?.[cardLength]?.expiration;
-  const idCard = query?.getDebt?.card?.[cardLength]?._id;
-  const idUser = query?.getDebt?.user?._id;
-  const idDebt = query?.getDebt?._id;
+  const cardLength = query?.debt?.card ? query?.debt?.card?.length - 1 : 0;
+  const cpf = query?.debt?.card?.[cardLength]?.cpf;
+  const number = query?.debt?.card?.[cardLength]?.number;
+  const cvv = query?.debt?.card?.[cardLength]?.cvv;
+  const expiration = query?.debt?.card?.[cardLength]?.expiration;
+  const idCard = query?.debt?.card?.[cardLength]?._id;
+  const idUser = query?.debt?.user?._id;
+  const idDebt = query?.debt?._id;
 
   const installmentFilter = formattingPlots(installments, "paid");
   const installmentPayment = formattingPlots(installments);
@@ -341,7 +339,7 @@ export default function PaymentCard() {
         ) : null}
 
         <Info
-          data={query?.getDebt}
+          data={query?.debt}
           installmentPayment={installmentPayment}
           installmentLength={installments.length}
         />

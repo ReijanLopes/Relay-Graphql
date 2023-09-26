@@ -3,19 +3,19 @@ import { useMutation } from "react-relay";
 import { graphql } from "relay-runtime";
 
 import type {
-  QrCodeMutation as QrCodeMutationType,
+  useQrcodeMutation as useQrcodeMutationType,
   DebtInput,
   UserInput,
-} from "../__generated__/QrCodeMutation.graphql";
+} from "./__generated__/useQrcodeMutation.graphql";
 import { useNavigate } from "react-router-native";
 
 const QrCodeMutation = graphql`
   mutation useQrcodeMutation($inputDebt: DebtInput, $inputUser: UserInput) {
-    mutationDebt(input: $inputDebt) {
+    createAndUpdateDebt(input: $inputDebt) {
       value
       cashback
     }
-    mutationUser(input: $inputUser) {
+    createAndUpdateUser(input: $inputUser) {
       _id
     }
   }
@@ -27,7 +27,7 @@ interface Variables {
 }
 
 const useQrCodeMutation = (variables: Variables, url: string) => {
-  const [commit] = useMutation<QrCodeMutationType>(QrCodeMutation);
+  const [commit] = useMutation<useQrcodeMutationType>(QrCodeMutation);
   const [error, setError] = useState<Error | null>(null);
 
   const navigate = useNavigate();

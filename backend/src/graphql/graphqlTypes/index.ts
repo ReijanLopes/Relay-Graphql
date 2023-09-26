@@ -43,7 +43,7 @@ export const debt = {
 };
 
 export const installment = {
-  card: { type: GraphQLID },
+  cardNumber: { type: GraphQLString },
   status: { type: GraphQLString },
   idMonth: { type: GraphQLInt },
   value: { type: GraphQLFloat },

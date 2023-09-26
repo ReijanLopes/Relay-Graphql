@@ -1,8 +1,8 @@
 import { GraphQLID, GraphQLObjectType } from "graphql";
 
-import { deleteUser, mutationUser } from "./resolvers/userResolvers";
-import { mutationCard } from "./resolvers/cardResolvers";
-import { mutationDebt } from "./resolvers/debtResolvers";
+import { deleteUser, createAndUpdateUser } from "./resolvers/userResolvers";
+import { createAndUpdateCard } from "./resolvers/cardResolvers";
+import { createAndUpdateDebt } from "./resolvers/debtResolvers";
 
 import {
   cardInput,
@@ -18,26 +18,26 @@ const mutation = new GraphQLObjectType({
   name: "Mutation",
   description: "The root of all mutations",
   fields: {
-    mutationUser: {
+    createAndUpdateUser: {
       type: userTypeDefinition,
       args: {
         input: { type: userInput },
       },
-      resolve: mutationUser,
+      resolve: createAndUpdateUser,
     },
-    mutationCard: {
+    createAndUpdateCard: {
       type: cardTypeDefinition,
       args: {
         input: { type: cardInput },
       },
-      resolve: mutationCard,
+      resolve: createAndUpdateCard,
     },
-    mutationDebt: {
+    createAndUpdateDebt: {
       type: debtTypeDefinition,
       args: {
         input: { type: debtInput },
       },
-      resolve: mutationDebt,
+      resolve: createAndUpdateDebt,
     },
     deleteUser: {
       type: deleteMessage,

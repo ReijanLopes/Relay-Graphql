@@ -19,8 +19,8 @@ const query = new GraphQLObjectType({
   name: "Query",
   description: "Root of all queries",
   fields: () => ({
-    getUser: {
-      name: "getUser",
+    user: {
+      name: "user",
       type: userTypeDefinition,
       args: {
         _id: {
@@ -29,8 +29,8 @@ const query = new GraphQLObjectType({
       },
       resolve: getUser,
     },
-    getCard: {
-      name: "getCard",
+    card: {
+      name: "card",
       type: cardTypeDefinition,
       args: {
         _id: {
@@ -39,8 +39,8 @@ const query = new GraphQLObjectType({
       },
       resolve: getCard,
     },
-    getDebt: {
-      name: "getDebt",
+    debt: {
+      name: "debt",
       type: debtTypeDefinition,
       args: {
         _id: {

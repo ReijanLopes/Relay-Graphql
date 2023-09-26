@@ -17,10 +17,10 @@ import { PaymentPixQuery as PaymentPixQueryType } from "./__generated__/PaymentP
 
 const PaymentPixQuery = graphql`
   query PaymentPixQuery($userId: ID!, $debtId: ID!) {
-    getUser(_id: $userId) {
+    user(_id: $userId) {
       name
     }
-    getDebt(_id: $debtId) {
+    debt(_id: $debtId) {
       value
       ...QrCode_DebtFragment
       ...Info_DebtFragment
@@ -42,9 +42,9 @@ export default function PaymentPix() {
   });
   const [qrCodeError, setQrCodeError] = useState(null);
 
-  const name = query?.getUser?.name;
-  const value = query.getDebt?.value || 0;
-  const tax = query?.getDebt?.tax?.value || 0;
+  const name = query?.user?.name;
+  const value = query.debt?.value || 0;
+  const tax = query?.debt?.tax?.value || 0;
 
   const { valueOfInstallmentsString } = useMemo(
     () => calculatingInstallmentValue(value, tax, installment),
@@ -99,7 +99,7 @@ export default function PaymentPix() {
         </View>
 
         <QrCode
-          variables={query?.getDebt}
+          variables={query?.debt}
           installment={installment}
           setError={setQrCodeError}
           userId={userId}
@@ -110,7 +110,7 @@ export default function PaymentPix() {
           </View>
         ) : null}
 
-        <Info data={query?.getDebt} installmentLength={installment} />
+        <Info data={query?.debt} installmentLength={installment} />
         <Footer />
       </SafeAreaView>
     </ScrollView>
