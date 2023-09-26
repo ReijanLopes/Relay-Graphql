@@ -37,4 +37,5 @@ const cardSchema = new Schema(
   { timestamps: true }
 );
 
-export default model("Card", cardSchema);
+const Card = model("Card", cardSchema);
+export default Card;

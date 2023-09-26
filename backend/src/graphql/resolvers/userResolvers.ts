@@ -51,7 +51,10 @@ export const listUser = async (
   }
 };
 
-export const mutationUser = async (_: any, { input }: { input: UserInput }) => {
+export const createAndUpdateUser = async (
+  _: any,
+  { input }: { input: UserInput }
+) => {
   const { _id, cashDesk, cards, debts, ...res } = input;
   if (!_id) {
     try {

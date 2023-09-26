@@ -3,19 +3,19 @@ import { useMutation } from "react-relay";
 import { graphql } from "relay-runtime";
 
 import type {
-  PaymentCardMutation as PaymentCardMutationType,
+  useCardMutation as useCardMutationType,
   InstallmentsInput,
   CardInput,
   DebtInput,
-} from "../__generated__/PaymentCardMutation.graphql";
+} from "./__generated__/useCardMutation.graphql";
 import { useNavigate } from "react-router-native";
 
 const PaymentCardMutation = graphql`
   mutation useCardMutation($inputCard: CardInput, $inputDebt: DebtInput) {
-    mutationCard(input: $inputCard) {
+    createAndUpdateCard(input: $inputCard) {
       _id
     }
-    mutationDebt(input: $inputDebt) {
+    createAndUpdateDebt(input: $inputDebt) {
       _id
       installments {
         status
@@ -38,22 +38,28 @@ type Variables = CardInput &
 
 const createInstallment = (
   installments?: readonly (InstallmentsInput | null)[] | null,
-  selectedPlots: number = 0
+  selectedPlots: number = 0,
+  number?: string | null
 ) => {
-  return installments?.map(({ status, ...res }) => {
+  return installments?.map(({ status, cardNumber, ...res }) => {
     if (status != "paid" && selectedPlots > 0) {
       selectedPlots = selectedPlots - 1;
-      return { ...res, status: "paid" };
+      return { ...res, status: "paid", cardNumber: number };
     }
-    return { ...res, status };
+    return { ...res, status, cardNumber };
   });
 };
 
 const transformInstallment = (
   installmentLength?: number,
-  installments?: readonly (InstallmentsInput | null)[] | null
+  installments?: readonly (InstallmentsInput | null)[] | null,
+  cardNumber?: string | null
 ) => {
-  const install = createInstallment(installments, installmentLength);
+  const install = createInstallment(
+    installments,
+    installmentLength,
+    cardNumber
+  );
   const HowManyInstallmentsWerePaid =
     install?.filter((item) => item.status === "onTime").length || 0;
   return { install, HowManyInstallmentsWerePaid };
@@ -63,7 +69,7 @@ const useCardMutation = (
   defaultInstallments: readonly (InstallmentsInput | null)[] | null | undefined
 ) => {
   const [commit, isInFlight] =
-    useMutation<PaymentCardMutationType>(PaymentCardMutation);
+    useMutation<useCardMutationType>(PaymentCardMutation);
   const [error, setError] = useState<Error | null>(null);
   const [installments, setInstallments] = useState(defaultInstallments || []);
 
@@ -82,8 +88,11 @@ const useCardMutation = (
     }: Variables) => {
       const { HowManyInstallmentsWerePaid, install } = transformInstallment(
         installmentLength,
-        installments
+        installments,
+        number
       );
+
+      const cardValidation = defaultNumber == number ? { card: idCard } : null;
       commit({
         variables: {
           inputCard: {
@@ -96,11 +105,11 @@ const useCardMutation = (
           inputDebt: {
             _id: idDebt,
             installments: install,
-            card: defaultNumber == number ? idCard : null,
+            ...cardValidation,
           },
         },
         onCompleted(item) {
-          setInstallments(item?.mutationDebt?.installments || []);
+          setInstallments(item?.createAndUpdateDebt?.installments || []);
           if (HowManyInstallmentsWerePaid <= 0) {
             navigate("/confirmed");
           }

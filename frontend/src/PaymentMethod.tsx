@@ -22,11 +22,11 @@ import { PaymentMethodQuery as PaymentMethodQueryType } from "./__generated__/Pa
 
 const PaymentMethodQuery = graphql`
   query PaymentMethodQuery($userId: ID!, $debtId: ID!) {
-    getUser(_id: $userId) {
+    user(_id: $userId) {
       _id
       name
     }
-    getDebt(_id: $debtId) {
+    debt(_id: $debtId) {
       value
       cashback
       numberOfInstallments
@@ -214,11 +214,11 @@ export default function PaymentMethod() {
   const [select, setSelect] = useState<number | null>(null);
   const navigate = useNavigate();
 
-  const name = query?.getUser?.name || "";
-  const value = query?.getDebt?.value || 0;
-  const numberOfInstallments = query?.getDebt?.numberOfInstallments || 0;
-  const tax = query?.getDebt?.tax?.value || 0;
-  const cashback = query?.getDebt?.cashback || 0;
+  const name = query?.user?.name || "";
+  const value = query?.debt?.value || 0;
+  const numberOfInstallments = query?.debt?.numberOfInstallments || 0;
+  const tax = query?.debt?.tax?.value || 0;
+  const cashback = query?.debt?.cashback || 0;
 
   const validatedAction = useMemo(
     () => userId && debtId && name && value,

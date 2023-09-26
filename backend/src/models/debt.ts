@@ -12,9 +12,8 @@ const debtSchema = new Schema(
     installments: {
       type: [
         {
-          card: {
-            type: Schema.Types.ObjectId,
-            ref: "Card",
+          cardNumber: {
+            type: String,
           },
           status: { type: String, default: "OnTime" },
           idMonth: { type: Number, required: [true, "What portion is needed"] },
