@@ -14,6 +14,7 @@ import { calculatingInstallmentValue } from "./utils";
 import styles from "./styles";
 
 import { PaymentPixQuery as PaymentPixQueryType } from "./__generated__/PaymentPixQuery.graphql";
+import useValidation from "./hooks/useValidation";
 
 const PaymentPixQuery = graphql`
   query PaymentPixQuery($userId: ID!, $debtId: ID!) {
@@ -42,6 +43,17 @@ export default function PaymentPix() {
   });
   const [qrCodeError, setQrCodeError] = useState(null);
 
+  const { isValid } = useValidation(
+    {
+      ...query.debt,
+      ...query.user,
+      installment,
+      userId,
+      debtId,
+    },
+    [userId, debtId]
+  );
+
   const name = query?.user?.name;
   const value = query.debt?.value || 0;
   const tax = query?.debt?.tax?.value || 0;
@@ -58,6 +70,7 @@ export default function PaymentPix() {
     pixValue,
     containerError,
     textError,
+    errorContainer,
   } = useMemo(
     () => ({
       container: [
@@ -84,6 +97,7 @@ export default function PaymentPix() {
         styles.alignItems_center,
       ],
       containerError: [styles.center, styles.fullWidth],
+      errorContainer: [styles.center, styles.flex_1],
       textError: [styles.color_red, styles.fontSize_10],
     }),
     []
@@ -93,24 +107,37 @@ export default function PaymentPix() {
     <ScrollView style={container}>
       <SafeAreaView style={areaView}>
         <Header />
-        <View style={styles.marginTopBottom_20}>
-          <Text style={nameHeader}>{name}, pague a entrada de</Text>
-          <Text style={pixValue}>R$ {valueOfInstallmentsString} pelo Pix</Text>
-        </View>
+        {isValid ? (
+          <>
+            <View style={styles.marginTopBottom_20}>
+              <Text style={nameHeader}>{name}, pague a entrada de</Text>
+              <Text style={pixValue}>
+                R$ {valueOfInstallmentsString} pelo Pix
+              </Text>
+            </View>
 
-        <QrCode
-          variables={query?.debt}
-          installment={installment}
-          setError={setQrCodeError}
-          userId={userId}
-        />
-        {qrCodeError ? (
-          <View style={containerError}>
-            <Text style={textError}>Ouve algum erro na criação do QrCode</Text>
+            <QrCode
+              variables={query?.debt}
+              installment={installment}
+              setError={setQrCodeError}
+              userId={userId}
+            />
+            {qrCodeError ? (
+              <View style={containerError}>
+                <Text style={textError}>
+                  Ouve algum erro na criação do QrCode
+                </Text>
+              </View>
+            ) : null}
+
+            <Info data={query?.debt} installmentLength={installment} />
+          </>
+        ) : (
+          <View style={errorContainer}>
+            <Text style={styles.bold}>Lamentamos, mas ocorreu um erro</Text>
           </View>
-        ) : null}
+        )}
 
-        <Info data={query?.debt} installmentLength={installment} />
         <Footer />
       </SafeAreaView>
     </ScrollView>

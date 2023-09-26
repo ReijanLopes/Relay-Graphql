@@ -18,7 +18,11 @@ import { useDebounce, formatNumberInString, calculatedTotal } from "./utils";
 
 import styles from "./styles";
 
-import { PaymentMethodQuery as PaymentMethodQueryType } from "./__generated__/PaymentMethodQuery.graphql";
+import {
+  PaymentMethodQuery as PaymentMethodQueryType,
+  PaymentMethodQuery$data,
+} from "./__generated__/PaymentMethodQuery.graphql";
+import useValidation from "./hooks/useValidation";
 
 const PaymentMethodQuery = graphql`
   query PaymentMethodQuery($userId: ID!, $debtId: ID!) {
@@ -89,6 +93,19 @@ const Flag = ({
   );
 };
 
+type SelectPaymentType = {
+  flag?: { title: string; text: string } | null;
+  select: number | null;
+  borderRadius?: any;
+  setSelect: React.Dispatch<React.SetStateAction<number | null>>;
+  cashback?: number | null;
+  onNavigate?: () => void;
+  valueTotal?: string;
+  titleCategory?: React.ReactNode | null;
+  installmentValue: string;
+  quantityInstallments: number;
+};
+
 const SelectPayment = ({
   flag,
   select,
@@ -100,18 +117,7 @@ const SelectPayment = ({
   titleCategory,
   installmentValue,
   quantityInstallments,
-}: {
-  flag?: { title: string; text: string } | null;
-  select: number | null;
-  borderRadius?: any;
-  setSelect: React.Dispatch<React.SetStateAction<number | null>>;
-  cashback?: number | null;
-  onNavigate?: () => void;
-  valueTotal?: string;
-  titleCategory?: React.ReactNode | null;
-  installmentValue: string;
-  quantityInstallments: number;
-}) => {
+}: SelectPaymentType) => {
   const handleClickDebounce = useDebounce(() => {
     onNavigate ? onNavigate() : null;
   }, 500);
@@ -185,24 +191,11 @@ const SelectPayment = ({
   );
 };
 
-type borderRadiusSelectPayment = {
-  start:
-    | {
-        borderTopStartRadius?: number;
-        borderTopEndRadius?: number;
-      }
-    | {};
-  end:
-    | {
-        borderBottomEndRadius?: number;
-        borderBottomStartRadius?: number;
-      }
-    | {};
-};
-
 const title = ["Pix", "Pix Parcelado"];
 export default function PaymentMethod() {
   const [params] = useSearchParams();
+  const [select, setSelect] = useState<number | null>(null);
+  const navigate = useNavigate();
   const userId = params.get("userId") || "64b83a4d339c9a6a82a5e8fe"; // Adicione seu valor padrão aqui
   const debtId = params.get("debtId") || "64b1ab19ffc4fcdd475daff9"; // Adicione seu valor padrão aqui
 
@@ -211,19 +204,21 @@ export default function PaymentMethod() {
     debtId,
   });
 
-  const [select, setSelect] = useState<number | null>(null);
-  const navigate = useNavigate();
+  const { isValid } = useValidation(
+    {
+      debtId,
+      userId,
+      ...query.debt,
+      ...query.user,
+    },
+    [userId, debtId]
+  );
 
-  const name = query?.user?.name || "";
+  const name = query.user?.name;
   const value = query?.debt?.value || 0;
   const numberOfInstallments = query?.debt?.numberOfInstallments || 0;
   const tax = query?.debt?.tax?.value || 0;
   const cashback = query?.debt?.cashback || 0;
-
-  const validatedAction = useMemo(
-    () => userId && debtId && name && value,
-    [userId, debtId, name, value]
-  );
 
   const renderList = useCallback(
     (idx: number) => {
@@ -296,7 +291,7 @@ export default function PaymentMethod() {
           select={select}
           setSelect={setSelect}
           onNavigate={() => {
-            validatedAction
+            isValid
               ? navigate(
                   `/pix?userId=${userId}&debtId=${debtId}&installment=${idx}`
                 )
@@ -338,11 +333,11 @@ export default function PaymentMethod() {
       <SafeAreaView style={main}>
         <Header />
         <View style={titleContainer}>
-          {name && (
+          {isValid && (
             <Text style={titleStyle}>{name}, como você quer pagar?</Text>
           )}
         </View>
-        {validatedAction ? (
+        {isValid ? (
           <View style={paymentOptionsContainer}>
             {Array.from({ length: numberOfInstallments }).map((_, idx) =>
               renderList(idx)

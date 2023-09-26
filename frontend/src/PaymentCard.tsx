@@ -22,12 +22,15 @@ import useCardMutation from "./hooks/useCardMutation";
 
 import styles from "./styles";
 
-import type { PaymentCardQuery as PaymentCardQueryType } from "./__generated__/PaymentCardQuery.graphql";
 import type {
-  PaymentCardMutation as PaymentCardMutationType,
+  PaymentCardQuery as PaymentCardMutationType,
+  PaymentCardQuery$data,
+} from "./__generated__/PaymentCardQuery.graphql";
+import type {
   InstallmentsInput,
   CardInput,
-} from "./__generated__/PaymentCardMutation.graphql";
+} from "./hooks/__generated__/useCardMutation.graphql";
+import useValidation from "./hooks/useValidation";
 
 const PaymentCardQuery = graphql`
   query PaymentCardQuery($debtId: ID!) {
@@ -142,22 +145,16 @@ const formattingPlots = (
   return createOptions(installments);
 };
 
-export default function PaymentCard() {
-  const [params] = useSearchParams();
-  const debtId = String(params.get("debtId"));
-
-  const query = useLazyLoadQuery<PaymentCardQueryType>(PaymentCardQuery, {
-    debtId,
-  });
-
+const Main = ({ query }: { query: PaymentCardQuery$data }) => {
   const { installments, submit, isInFlight, error } = useCardMutation(
     query?.debt?.installments
   );
 
+  const installmentFilter = formattingPlots(installments, "paid");
+  const installmentPayment = formattingPlots(installments);
+
+  const portion = installments?.length;
   const name = query?.debt?.user?.name;
-
-  const portion = installments?.length || 0;
-
   const cardLength = query?.debt?.card ? query?.debt?.card?.length - 1 : 0;
   const cpf = query?.debt?.card?.[cardLength]?.cpf;
   const number = query?.debt?.card?.[cardLength]?.number;
@@ -166,9 +163,6 @@ export default function PaymentCard() {
   const idCard = query?.debt?.card?.[cardLength]?._id;
   const idUser = query?.debt?.user?._id;
   const idDebt = query?.debt?._id;
-
-  const installmentFilter = formattingPlots(installments, "paid");
-  const installmentPayment = formattingPlots(installments);
 
   const { title, expirationString } = useMemo(() => {
     const expirationString = formatExpiringInDate(Number(expiration));
@@ -181,8 +175,6 @@ export default function PaymentCard() {
   }, [portion, expiration]);
 
   const {
-    main,
-    container,
     containerTitle,
     titleStyle,
     containerCvvAndExpiration,
@@ -191,13 +183,6 @@ export default function PaymentCard() {
     buttonSubmit,
   } = useMemo(
     () => ({
-      main: [styles.fullWidth, styles.padding_10, styles.marginTopBottom_20],
-      container: [
-        styles.bgColor_white,
-        styles.flex_1,
-        styles.fullWidth,
-        styles.alignItems_center,
-      ],
       containerTitle: [
         styles.marginTopBottom_20,
         styles.fullWidth,
@@ -227,122 +212,165 @@ export default function PaymentCard() {
   );
 
   return (
+    <>
+      <View style={containerTitle}>
+        <Text style={titleStyle}>
+          {name}, {title}
+        </Text>
+      </View>
+
+      <Formik
+        initialValues={{
+          name,
+          cpf,
+          number,
+          expiration: expirationString,
+          cvv: cvv,
+          installmentLength: installments?.length,
+        }}
+        validate={(values) => {
+          return validationErrors(values);
+        }}
+        onSubmit={(values) => {
+          submit({
+            ...values,
+            idCard,
+            idUser,
+            idDebt,
+            defaultNumber: number,
+          });
+        }}
+      >
+        {({ handleChange, handleBlur, handleSubmit, values, errors }) => (
+          <View style={containerInputs}>
+            <TextInput
+              value={values?.name}
+              placeholder="Digite o nome completo"
+              label="Nome completo"
+              onChange={handleChange("name")}
+              onBlur={handleBlur("name")}
+              error={errors?.name}
+            />
+            <TextInput
+              value={values?.cpf}
+              placeholder="Digite o CPF"
+              label="CPF"
+              onChange={handleChange("cpf")}
+              onBlur={handleBlur("cpf")}
+              mask={maskCPF}
+              error={errors?.cpf}
+            />
+            <TextInput
+              value={values?.number}
+              placeholder="Exemplo: 000.000.000-00"
+              label="Número de cartão"
+              onChange={handleChange("number")}
+              onBlur={handleBlur("number")}
+              mask={maskCardNumber}
+              error={errors?.number}
+            />
+            <View style={containerCvvAndExpiration}>
+              <TextInput
+                width="45%"
+                value={values?.expiration}
+                placeholder="Exemplo: 00/00"
+                label="Vencimento"
+                onChange={handleChange("expiration")}
+                onBlur={handleBlur("expiration")}
+                mask={maskValidate}
+                error={errors?.expiration}
+              />
+              <TextInput
+                width="45%"
+                value={values?.cvv ? String(values.cvv) : ""}
+                placeholder="Exemplo: 000"
+                label="CVV"
+                onChange={handleChange("cvv")}
+                onBlur={handleBlur("cvv")}
+                mask={maskCVV}
+                error={errors?.cvv}
+              />
+            </View>
+
+            <Select
+              options={installmentFilter}
+              defaultValue={installmentFilter?.[installmentFilter?.length - 1]}
+              label="Parcelas"
+              onChange={handleChange("installmentLength")}
+              onBlur={handleBlur("installmentLength")}
+              error={errors?.installmentLength}
+            />
+            <Pressable
+              style={buttonSubmit}
+              onPress={() => {
+                handleSubmit();
+              }}
+            >
+              <Text style={styles.color_white}>
+                {isInFlight ? "Carregando..." : "Pagar"}{" "}
+              </Text>
+            </Pressable>
+          </View>
+        )}
+      </Formik>
+      {error ? (
+        <View style={containerError}>
+          <Text style={styles.color_red}>Houve algum erro</Text>
+        </View>
+      ) : null}
+
+      <Info
+        data={query?.debt}
+        installmentPayment={installmentPayment}
+        installmentLength={installments.length}
+      />
+    </>
+  );
+};
+
+export default function PaymentCard() {
+  const [params] = useSearchParams();
+  const debtId = String(params.get("debtId"));
+
+  const query = useLazyLoadQuery<PaymentCardMutationType>(PaymentCardQuery, {
+    debtId,
+  });
+
+  const { isValid } = useValidation(
+    {
+      debtId,
+      ...query.debt,
+      ...query.debt?.installments,
+    },
+    [query.debt?.user?._id, debtId]
+  );
+
+  const { main, container, errorContainer } = useMemo(
+    () => ({
+      main: [styles.fullWidth, styles.padding_10, styles.marginTopBottom_20],
+      container: [
+        styles.bgColor_white,
+        styles.flex_1,
+        styles.fullWidth,
+        styles.alignItems_center,
+      ],
+      errorContainer: [styles.center, styles.flex_1],
+    }),
+    []
+  );
+
+  return (
     <ScrollView style={main}>
       <SafeAreaView style={container}>
         <Header />
-        <View style={containerTitle}>
-          <Text style={titleStyle}>
-            {name}, {title}
-          </Text>
-        </View>
-
-        <Formik
-          initialValues={{
-            name,
-            cpf,
-            number,
-            expiration: expirationString,
-            cvv: cvv,
-            installmentLength: installments?.length,
-          }}
-          validate={(values) => {
-            return validationErrors(values);
-          }}
-          onSubmit={(values) => {
-            submit({
-              ...values,
-              idCard,
-              idUser,
-              idDebt,
-              defaultNumber: number,
-            });
-          }}
-        >
-          {({ handleChange, handleBlur, handleSubmit, values, errors }) => (
-            <View style={containerInputs}>
-              <TextInput
-                value={values?.name}
-                placeholder="Digite o nome completo"
-                label="Nome completo"
-                onChange={handleChange("name")}
-                onBlur={handleBlur("name")}
-                error={errors?.name}
-              />
-              <TextInput
-                value={values?.cpf}
-                placeholder="Digite o CPF"
-                label="CPF"
-                onChange={handleChange("cpf")}
-                onBlur={handleBlur("cpf")}
-                mask={maskCPF}
-                error={errors?.cpf}
-              />
-              <TextInput
-                value={values?.number}
-                placeholder="Exemplo: 000.000.000-00"
-                label="Número de cartão"
-                onChange={handleChange("number")}
-                onBlur={handleBlur("number")}
-                mask={maskCardNumber}
-                error={errors?.number}
-              />
-              <View style={containerCvvAndExpiration}>
-                <TextInput
-                  width="45%"
-                  value={values?.expiration}
-                  placeholder="Exemplo: 00/00"
-                  label="Vencimento"
-                  onChange={handleChange("expiration")}
-                  onBlur={handleBlur("expiration")}
-                  mask={maskValidate}
-                  error={errors?.expiration}
-                />
-                <TextInput
-                  width="45%"
-                  value={values?.cvv ? String(values.cvv) : ""}
-                  placeholder="Exemplo: 000"
-                  label="CVV"
-                  onChange={handleChange("cvv")}
-                  onBlur={handleBlur("cvv")}
-                  mask={maskCVV}
-                  error={errors?.cvv}
-                />
-              </View>
-
-              <Select
-                options={installmentFilter}
-                defaultValue={
-                  installmentFilter?.[installmentFilter?.length - 1]
-                }
-                label="Parcelas"
-                onChange={handleChange("installmentLength")}
-                onBlur={handleBlur("installmentLength")}
-                error={errors?.installmentLength}
-              />
-              <Pressable
-                style={buttonSubmit}
-                onPress={() => {
-                  handleSubmit();
-                }}
-              >
-                <Text style={styles.color_white}>
-                  {isInFlight ? "Carregando..." : "Pagar"}{" "}
-                </Text>
-              </Pressable>
-            </View>
-          )}
-        </Formik>
-        {error ? (
-          <View style={containerError}>
-            <Text style={styles.color_red}>Houve algum erro</Text>
+        {isValid ? (
+          <Main query={query} />
+        ) : (
+          <View style={errorContainer}>
+            <Text style={styles.bold}>Lamentamos, mas ocorreu um erro</Text>
           </View>
-        ) : null}
+        )}
 
-        <Info
-          data={query?.debt}
-          installmentPayment={installmentPayment}
-          installmentLength={installments.length}
-        />
         <Footer />
       </SafeAreaView>
     </ScrollView>
